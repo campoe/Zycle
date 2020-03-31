@@ -1,14 +1,16 @@
 package com.campoe.android.zycle.viewholder
 
-import android.view.DragEvent
-import android.view.MotionEvent
 import android.view.View
 import androidx.annotation.CallSuper
 import androidx.recyclerview.widget.RecyclerView
 import com.campoe.android.zycle.ZycleDsl
+import com.campoe.android.zycle.`typealias`.OnItemClickListener
+import com.campoe.android.zycle.`typealias`.OnItemLongClickListener
+import com.campoe.android.zycle.`typealias`.OnItemTouchListener
 
 @ZycleDsl
-class ViewHolder<E : Any>(itemView: View) : RecyclerView.ViewHolder(itemView), IViewHolder<E> {
+open class ViewHolder<E : Any>(itemView: View) : RecyclerView.ViewHolder(itemView),
+    IViewHolder<E> {
 
     var item: E? = null
         protected set
@@ -16,23 +18,14 @@ class ViewHolder<E : Any>(itemView: View) : RecyclerView.ViewHolder(itemView), I
     @CallSuper
     override fun bind(
         item: E,
-        listeners: List<IViewHolder.ViewHolderListener<IViewHolder<E>>>
+        onClick: OnItemClickListener<ViewHolder<E>>?,
+        onLongClick: OnItemLongClickListener<ViewHolder<E>>?,
+        onTouch: OnItemTouchListener<ViewHolder<E>>?
     ) {
         this.item = item
-        listeners.forEach {
-            listen(it)
-        }
-    }
-
-    @CallSuper
-    override fun bind(
-        item: E,
-        vararg listeners: IViewHolder.ViewHolderListener<IViewHolder<E>>
-    ) {
-        this.item = item
-        listeners.forEach {
-            listen(it)
-        }
+        onClick?.let { onClick(it) }
+        onLongClick?.let { onLongClick(it) }
+        onTouch?.let { onTouch(it) }
     }
 
     @CallSuper
@@ -43,83 +36,19 @@ class ViewHolder<E : Any>(itemView: View) : RecyclerView.ViewHolder(itemView), I
         item = null
     }
 
-    override fun listen(listener: IViewHolder.ViewHolderListener<IViewHolder<E>>) {
-        when (listener) {
-            is IViewHolder.OnItemClickListener ->
-                this.itemView.setOnClickListener {
-                    listener.onItemClick(this)
-                }
-            is IViewHolder.OnItemLongClickListener ->
-                this.itemView.setOnLongClickListener {
-                    listener.onItemLongClick(this)
-                }
-            is IViewHolder.OnItemTouchListener ->
-                this.itemView.setOnTouchListener { _, e ->
-                    listener.onItemTouch(this, e)
-                }
-            is IViewHolder.OnItemDragListener ->
-                this.itemView.setOnDragListener { _, e ->
-                    listener.onItemDrag(this, e)
-                }
-            is IViewHolder.OnItemHoverListener ->
-                this.itemView.setOnHoverListener { _, e ->
-                    listener.onItemHover(this, e)
-                }
-        }
-    }
-
-    inline fun onItemClick(crossinline f: (IViewHolder<E>) -> Unit) =
+    inline fun onClick(crossinline f: OnItemClickListener<ViewHolder<E>>) =
         apply {
-            listen(
-                object : IViewHolder.OnItemClickListener<IViewHolder<E>> {
-                    override fun onItemClick(holder: IViewHolder<E>) = f(holder)
-                }
-            )
+            itemView.setOnClickListener { f(this) }
         }
 
-    inline fun onItemLongClick(crossinline f: (IViewHolder<E>) -> Boolean) =
+    inline fun onLongClick(crossinline f: OnItemLongClickListener<ViewHolder<E>>) =
         apply {
-            listen(
-                object : IViewHolder.OnItemLongClickListener<IViewHolder<E>> {
-                    override fun onItemLongClick(holder: IViewHolder<E>): Boolean = f(holder)
-                }
-            )
+            itemView.setOnLongClickListener { f(this) }
         }
 
-    inline fun onItemTouch(crossinline f: (IViewHolder<E>, MotionEvent) -> Boolean) =
+    inline fun onTouch(crossinline f: OnItemTouchListener<ViewHolder<E>>) =
         apply {
-            listen(
-                object : IViewHolder.OnItemTouchListener<IViewHolder<E>> {
-                    override fun onItemTouch(holder: IViewHolder<E>, e: MotionEvent): Boolean =
-                        f(holder, e)
-                }
-            )
-        }
-
-    inline fun onItemDrag(crossinline f: (IViewHolder<E>, DragEvent) -> Boolean) =
-        apply {
-            listen(
-                object : IViewHolder.OnItemDragListener<IViewHolder<E>> {
-                    override fun onItemDrag(
-                        holder: IViewHolder<E>,
-                        e: DragEvent
-                    ): Boolean =
-                        f(holder, e)
-                }
-            )
-        }
-
-    inline fun onItemHover(crossinline f: (IViewHolder<E>, MotionEvent) -> Boolean) =
-        apply {
-            listen(
-                object : IViewHolder.OnItemHoverListener<IViewHolder<E>> {
-                    override fun onItemHover(
-                        holder: IViewHolder<E>,
-                        e: MotionEvent
-                    ): Boolean =
-                        f(holder, e)
-                }
-            )
+            itemView.setOnTouchListener { _, e -> f(this, e) }
         }
 
 }

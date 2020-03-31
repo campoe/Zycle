@@ -1,16 +1,18 @@
 package com.campoe.android.zycle.adapter
 
-import android.view.*
+import android.view.LayoutInflater
+import android.view.MotionEvent
+import android.view.ViewGroup
 import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.RecyclerView
 import com.campoe.android.zycle.ZycleDsl
+import com.campoe.android.zycle.`typealias`.*
+import com.campoe.android.zycle.extension.cast
 import com.campoe.android.zycle.mapper.Mapper
 import com.campoe.android.zycle.mapper.TypeErasedMapper
 import com.campoe.android.zycle.mapper.mapper
 import com.campoe.android.zycle.observablelist.ObservableList
-import com.campoe.android.zycle.util.cast
-import com.campoe.android.zycle.viewholder.IViewHolder
 import com.campoe.android.zycle.viewholder.ViewHolder
 
 @ZycleDsl
@@ -20,47 +22,55 @@ open class Adapter<E : Any, VH : ViewHolder<E>>(internal val items: MutableList<
     constructor(items: Array<out E>) : this(items.toMutableList())
 
     @Suppress("LeakingThis")
-    protected var callback: ObservableList.ObservableListCallback<E, VH> =
+    private var callback: ObservableList.ObservableListCallback<E, VH> =
         ObservableList.ObservableListCallback(this)
 
     private val map: MutableMap<Class<*>, TypeErasedMapper> = mutableMapOf()
 
-    private var layoutProvider: ((E, Int) -> Int)? = null
-    private var stableIdProvider: ((E, Int) -> Long)? = null
+    private var layoutProvider: LayoutProvider<E>? = null
+    private var stableIdProvider: StableIdProvider<E>? = null
         set(value) {
             setHasStableIds(true)
             field = value
         }
 
-    private var onAttachListener: ((RecyclerView) -> Unit)? = null
-    private var onDetachListener: ((RecyclerView) -> Unit)? = null
+    private var onAttachListener: OnAttachListener? = null
+    private var onDetachListener: OnDetachListener? = null
 
-    private var onBindListener: (VH.() -> Unit)? = null
-    private var onRecycleListener: (VH.() -> Unit)? = null
+    private var onBindListener: OnBindListener<VH>? = null
+    private var onRecycleListener: OnRecycleListener<VH>? = null
+
+    private var onClickListener: OnItemClickListener<VH>? = null
+    private var onLongClickListener: OnItemLongClickListener<VH>? = null
+    private var onTouchListener: OnItemTouchListener<VH>? = null
 
     private var layoutInflater: LayoutInflater? = null
-    private var recyclerView: RecyclerView? = null
-    private val listeners: MutableList<IViewHolder.ViewHolderListener<VH>> = mutableListOf()
+    protected var recyclerView: RecyclerView? = null
 
-    override fun attach(view: RecyclerView) {
-        view.adapter = this
-    }
+    override fun attach(view: RecyclerView) =
+        apply { view.adapter = this }
 
-    override fun detach() {
-        recyclerView?.adapter = null
-    }
+    override fun detach() =
+        apply { recyclerView?.adapter = null }
 
-    internal fun onAttach(f: (RecyclerView) -> Unit): IAdapter<E, VH> =
+    internal fun onAttach(f: OnAttachListener): IAdapter<E, VH> =
         apply { onAttachListener = f }
 
-    internal fun onDetach(f: (RecyclerView) -> Unit): IAdapter<E, VH> =
+    internal fun onDetach(f: OnDetachListener): IAdapter<E, VH> =
         apply { onDetachListener = f }
+
+    fun <T : E> map(clazz: Class<T>, mapper: Mapper<T, ViewHolder<T>>) =
+        apply { map[clazz] = mapper }
+
+    inline fun <reified T : E> map(mapper: Mapper<T, ViewHolder<T>>) =
+        map(T::class.java, mapper)
 
     override fun <T : E> map(
         clazz: Class<T>,
+        @LayoutRes
         layoutRes: Int,
-        block: (Mapper<T, ViewHolder<T>>.() -> Unit)?
-    ): IAdapter<E, VH> =
+        block: MapperBlock<T>?
+    ): Adapter<E, VH> =
         apply {
             map[clazz] = mapper<T>(layoutRes)
                 .apply { block?.invoke(this) }
@@ -73,93 +83,45 @@ open class Adapter<E : Any, VH : ViewHolder<E>>(internal val items: MutableList<
 
     inline fun <reified T : E> map(
         @LayoutRes layoutRes: Int,
-        noinline block: (Mapper<T, ViewHolder<T>>.() -> Unit)
+        noinline block: MapperBlock<T>
     ) =
         map(T::class.java, layoutRes, block)
 
-    override fun layout(f: (item: E, position: Int) -> Int) =
+    override fun layout(f: LayoutProvider<E>) =
         apply { layoutProvider = f }
 
-    override fun stableId(f: (item: E, position: Int) -> Long): IAdapter<E, VH> =
+    override fun stableId(f: StableIdProvider<E>): Adapter<E, VH> =
         apply { stableIdProvider = f }
 
-    override fun onBind(f: VH.() -> Unit): IAdapter<E, VH> =
+    override fun onBind(f: OnBindListener<VH>): Adapter<E, VH> =
         apply { onBindListener = f }
 
-    override fun onRecycle(f: VH.() -> Unit): IAdapter<E, VH> =
+    override fun onRecycle(f: OnRecycleListener<VH>): Adapter<E, VH> =
         apply { onRecycleListener = f }
 
-    override fun listen(listener: IViewHolder.ViewHolderListener<VH>) =
-        apply { listeners.add(listener) }
+    override fun onClick(f: OnItemClickListener<VH>): Adapter<E, VH> =
+        apply { onClickListener = f }
 
-    inline fun onItemClick(crossinline f: (VH) -> Unit) =
-        apply {
-            listen(
-                object : IViewHolder.OnItemClickListener<VH> {
-                    override fun onItemClick(holder: VH) = f(holder)
-                }
-            )
-        }
+    override fun onLongClick(f: OnItemLongClickListener<VH>): Adapter<E, VH> =
+        apply { onLongClickListener = f }
 
-    inline fun onItemLongClick(crossinline f: (VH) -> Boolean) =
-        apply {
-            listen(
-                object : IViewHolder.OnItemLongClickListener<VH> {
-                    override fun onItemLongClick(holder: VH): Boolean = f(holder)
-                }
-            )
-        }
-
-    inline fun onItemTouch(crossinline f: (VH, MotionEvent) -> Boolean) =
-        apply {
-            listen(
-                object : IViewHolder.OnItemTouchListener<VH> {
-                    override fun onItemTouch(holder: VH, e: MotionEvent): Boolean =
-                        f(holder, e)
-                }
-            )
-        }
-
-    inline fun onItemDrag(crossinline f: (VH, DragEvent) -> Boolean) =
-        apply {
-            listen(
-                object : IViewHolder.OnItemDragListener<VH> {
-                    override fun onItemDrag(
-                        holder: VH,
-                        e: DragEvent
-                    ): Boolean =
-                        f(holder, e)
-                }
-            )
-        }
-
-    inline fun onItemHover(crossinline f: (VH, MotionEvent) -> Boolean) =
-        apply {
-            listen(
-                object : IViewHolder.OnItemHoverListener<VH> {
-                    override fun onItemHover(
-                        holder: VH,
-                        e: MotionEvent
-                    ): Boolean =
-                        f(holder, e)
-                }
-            )
-        }
+    override fun onTouch(f: OnItemTouchListener<VH>): Adapter<E, VH> =
+        apply { onTouchListener = f }
 
     @Suppress("UNCHECKED_CAST")
-    private fun instantiateViewHolder(
+    protected open fun instantiateViewHolder(
         parent: ViewGroup,
         viewType: Int,
-        itemView: View
+        layoutInflater: LayoutInflater
     ): VH {
+        val itemView = layoutInflater.inflate(viewType, parent, false)
         return ViewHolder<E>(itemView) as VH
     }
 
     @CallSuper
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         if (layoutInflater == null) layoutInflater = LayoutInflater.from(parent.context)
-        val view = layoutInflater!!.inflate(viewType, parent, false)
-        return instantiateViewHolder(parent, viewType, view)
+        return instantiateViewHolder(parent, viewType, layoutInflater!!)
     }
 
     override fun getItemCount(): Int {
@@ -170,18 +132,11 @@ open class Adapter<E : Any, VH : ViewHolder<E>>(internal val items: MutableList<
     @CallSuper
     override fun onBindViewHolder(holder: VH, position: Int) {
         val item = get(position)
-        val listeners = listeners.toMutableList()
-        getMapper(position)?.also { mapper ->
-            listeners.apply {
-                addAll(mapper.listeners)
-                val tmp = listeners.distinctBy { l -> l.javaClass }
-                listeners.clear()
-                listeners.addAll(tmp)
-            }
-        }
         holder.bind(
-            item,
-            listeners.toList() as List<IViewHolder.ViewHolderListener<IViewHolder<E>>> // TODO: set listeners in create
+            item, // TODO: set listeners in create
+            onClick = { this@Adapter.doOnClick(this as VH) },
+            onLongClick = { this@Adapter.doOnLongClick(this as VH) },
+            onTouch = { e -> this@Adapter.doOnTouch(this as VH, e) }
         )
         doOnBind(holder)
     }
@@ -206,7 +161,7 @@ open class Adapter<E : Any, VH : ViewHolder<E>>(internal val items: MutableList<
             ?: super.getItemId(position)
     }
 
-    override fun onAttachedToRecyclerView(view: RecyclerView) {
+    final override fun onAttachedToRecyclerView(view: RecyclerView) {
         if (recyclerView == null) {
             if (items is ObservableList) items.addCallback(callback)
             recyclerView = view
@@ -215,7 +170,7 @@ open class Adapter<E : Any, VH : ViewHolder<E>>(internal val items: MutableList<
         }
     }
 
-    override fun onDetachedFromRecyclerView(view: RecyclerView) {
+    final override fun onDetachedFromRecyclerView(view: RecyclerView) {
         if (recyclerView != null) {
             if (items is ObservableList) items.removeCallback(callback)
             onDetachListener?.invoke(view)
@@ -236,8 +191,10 @@ open class Adapter<E : Any, VH : ViewHolder<E>>(internal val items: MutableList<
 
     private fun doOnBind(holder: VH) {
         onBindListener?.invoke(holder)
-            ?: map[holder.item!!.javaClass]?.cast<Mapper<*, VH>>()?.onBindListener?.invoke(holder)
-            ?: throw RuntimeException("Could not resolve an item layout.")
+            ?: map[holder.item!!.javaClass]?.cast<Mapper<*, VH>>()?.internalOnBindListener?.invoke(
+                holder
+            )
+            ?: throw RuntimeException("Could not resolve an item layout.") // TODO: error message
     }
 
     private fun doOnRecycle(holder: VH) {
@@ -250,14 +207,34 @@ open class Adapter<E : Any, VH : ViewHolder<E>>(internal val items: MutableList<
         return map[get(position).javaClass]?.cast()
     }
 
-    private fun get(position: Int): E {
+    protected fun get(position: Int): E {
         return items[position]
+    }
+
+    private fun doOnClick(holder: VH) {
+        onClickListener?.invoke(holder)
+        map[holder.item!!.javaClass]?.cast<Mapper<*, VH>>()?.onClickListener?.invoke(holder)
+    }
+
+    private fun doOnLongClick(holder: VH): Boolean {
+        return onLongClickListener?.invoke(holder) ?: false ||
+                map[holder.item!!.javaClass]?.cast<Mapper<*, VH>>()?.onLongClickListener?.invoke(
+                    holder
+                ) ?: false
+    }
+
+    private fun doOnTouch(holder: VH, e: MotionEvent): Boolean {
+        return onTouchListener?.invoke(holder, e) ?: false ||
+                map[holder.item!!.javaClass]?.cast<Mapper<*, VH>>()?.onTouchListener?.invoke(
+                    holder,
+                    e
+                ) ?: false
     }
 
 }
 
-fun <E : Any> adapterOf(): Adapter<E, ViewHolder<E>> = Adapter()
-fun <E : Any> adapterOf(vararg elements: E): Adapter<E, ViewHolder<E>> = Adapter(elements)
+internal fun <E : Any> adapterOf(): Adapter<E, ViewHolder<E>> = Adapter()
+internal fun <E : Any> adapterOf(vararg elements: E): Adapter<E, ViewHolder<E>> = Adapter(elements)
 
-fun <E : Any> Array<out E>.toAdapter(): Adapter<E, ViewHolder<E>> = Adapter(this)
-fun <E : Any> MutableList<E>.toAdapter(): Adapter<E, ViewHolder<E>> = Adapter(this)
+internal fun <E : Any> Array<out E>.toAdapter(): Adapter<E, ViewHolder<E>> = Adapter(this)
+internal fun <E : Any> MutableList<E>.toAdapter(): Adapter<E, ViewHolder<E>> = Adapter(this)

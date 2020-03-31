@@ -1,18 +1,21 @@
 package com.campoe.android.zycle.observablelist
 
 import android.os.Looper
+import androidx.recyclerview.widget.DiffUtil
 import com.campoe.android.zycle.adapter.Adapter
+import com.campoe.android.zycle.extension.dispatchUpdatesTo
+import com.campoe.android.zycle.util.DiffUtilCallback
 import com.campoe.android.zycle.viewholder.ViewHolder
 import java.lang.ref.Reference
 import java.lang.ref.WeakReference
 
-class ObservableList<E : Any> internal constructor(private val items: MutableList<E> = mutableListOf()) :
+class ObservableList<E : Any>(private val items: MutableList<E> = mutableListOf()) :
     IObservableList<E>,
     MutableList<E> by items {
 
     constructor(items: Array<out E>) : this(items.toMutableList())
 
-    private val callbacks: MutableList<IObservableList.IObservableListCallback<ObservableList<E>>> =
+    private val callbacks: MutableList<ObservableListCallback<E, *>> =
         mutableListOf()
 
     override fun add(element: E): Boolean {
@@ -47,8 +50,11 @@ class ObservableList<E : Any> internal constructor(private val items: MutableLis
     }
 
     override fun removeAll(elements: Collection<E>): Boolean {
+        if (elements.size == 1) return remove(elements.single())
+        val oldItems = this.toMutableList()
         val ret = items.removeAll(elements)
-        if (ret) callbacks.forEach { it.onChanged(this) }
+        if (ret) DiffUtil.calculateDiff(DiffUtilCallback(oldItems, this))
+            .dispatchUpdatesTo(callbacks)
         return ret
     }
 
@@ -65,8 +71,10 @@ class ObservableList<E : Any> internal constructor(private val items: MutableLis
     }
 
     override fun retainAll(elements: Collection<E>): Boolean {
+        val oldItems = this.toMutableList()
         val ret = items.retainAll(elements)
-        if (ret) callbacks.forEach { it.onChanged(this) }
+        if (ret) DiffUtil.calculateDiff(DiffUtilCallback(oldItems, this))
+            .dispatchUpdatesTo(callbacks)
         return ret
     }
 
@@ -75,11 +83,11 @@ class ObservableList<E : Any> internal constructor(private val items: MutableLis
         callbacks.forEach { it.onChanged(this) }
     }
 
-    override fun addCallback(callback: IObservableList.IObservableListCallback<ObservableList<E>>) {
+    override fun addCallback(callback: ObservableListCallback<E, *>) {
         callbacks.add(callback)
     }
 
-    override fun removeCallback(callback: IObservableList.IObservableListCallback<ObservableList<E>>) {
+    override fun removeCallback(callback: ObservableListCallback<E, *>) {
         callbacks.remove(callback)
     }
 
@@ -91,7 +99,7 @@ class ObservableList<E : Any> internal constructor(private val items: MutableLis
         IObservableList.IObservableListCallback<ObservableList<E>> {
 
         private val reference: Reference<Adapter<E, VH>> = WeakReference(adapter)
-        private val adapter: Adapter<E, VH>?
+        internal val adapter: Adapter<E, VH>?
             get() {
                 if (Thread.currentThread() == Looper.getMainLooper().thread) return reference.get()
                 throw IllegalStateException("You must modify the ObservableList on the main thread.")
@@ -143,7 +151,8 @@ class ObservableList<E : Any> internal constructor(private val items: MutableLis
 
 }
 
-fun <E : Any> observableListOf(): ObservableList<E> = ObservableList()
-fun <E : Any> observableListOf(vararg elements: E): ObservableList<E> = ObservableList(elements)
+internal fun <E : Any> observableListOf(): ObservableList<E> = ObservableList()
+internal fun <E : Any> observableListOf(vararg elements: E): ObservableList<E> =
+    ObservableList(elements)
 
-fun <E : Any> Array<out E>.toObservableList(): ObservableList<E> = ObservableList(this)
+internal fun <E : Any> Array<out E>.toObservableList(): ObservableList<E> = ObservableList(this)

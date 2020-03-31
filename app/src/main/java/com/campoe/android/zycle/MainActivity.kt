@@ -4,12 +4,13 @@ import android.os.Bundle
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.campoe.android.zycle.databinding.extension.bindingAdapterOf
+import com.campoe.android.zycle.databinding.extension.requireBinding
 import com.campoe.android.zycle.observablelist.ObservableList
-import com.campoe.android.zycle.observablelist.observableListOf
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.item_text.view.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -18,23 +19,23 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-        val list: ObservableList<Any> = observableListOf()
+        val list = ObservableList<Any>()
         val layoutManager = LinearLayoutManager(recyclerView.context)
         recyclerView.zycle {
             layoutManager(layoutManager)
             emptyView(R.id.emptyView)
-            adapterOf(list) {
-                map<String>(R.layout.item_text) {
+            bindingAdapterOf(list) {
+                map<String>(R.layout.item_bind_text) {
                     stableId { _, position ->
                         position.toLong()
                     }
                     onBind {
-                        itemView.textView.text = item
+                        requireBinding<ViewDataBinding>().setVariable(BR.item, item)
                     }
-                    onItemClick {
+                    onClick {
                         Toast.makeText(applicationContext, item, Toast.LENGTH_SHORT).show()
                     }
-                    onItemLongClick {
+                    onLongClick {
                         list.removeAt(adapterPosition)
                         true
                     }

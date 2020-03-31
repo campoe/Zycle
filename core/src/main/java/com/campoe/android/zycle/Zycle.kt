@@ -4,6 +4,8 @@ import android.view.View
 import androidx.annotation.IdRes
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.campoe.android.zycle.`typealias`.AdapterBlock
+import com.campoe.android.zycle.`typealias`.ZycleBlock
 import com.campoe.android.zycle.adapter.Adapter
 import com.campoe.android.zycle.adapter.adapterOf
 import com.campoe.android.zycle.adapter.toAdapter
@@ -31,38 +33,23 @@ class Zycle internal constructor(
 
     fun <E : Any> adapterOf(
         elements: MutableList<E>,
-        block: Adapter<E, ViewHolder<E>>.() -> Unit
+        block: AdapterBlock<E, ViewHolder<E>>
     ) =
         apply { adapter = elements.toAdapter().apply(block) }
 
     fun <E : Any> adapterOf(
         elements: Array<out E>,
-        block: Adapter<E, ViewHolder<E>>.() -> Unit
+        block: AdapterBlock<E, ViewHolder<E>>
     ) =
-        apply { adapter = adapterOf<E>(*elements).apply(block) }
+        apply { adapter = adapterOf(*elements).apply(block) }
 
     fun <E : Any> adapterOf(
-        block: Adapter<E, ViewHolder<E>>.() -> Unit
+        block: AdapterBlock<E, ViewHolder<E>>
     ) =
         apply { adapter = adapterOf<E>().apply(block) }
 
     fun layoutManager(layoutManager: RecyclerView.LayoutManager) =
         apply { recyclerView.layoutManager = layoutManager }
-
-    fun paginate(refreshSize: Int) =
-        apply { /* TODO */ }
-
-    fun swipeUpToRefresh() =
-        apply { /* TODO */ }
-
-    fun scrollbar() =
-        apply { /* TODO */ }
-
-    inline fun extension(crossinline f: (View, Int) -> Unit) =
-        apply { /* TODO */ }
-
-    inline fun extension(crossinline f: (RecyclerView) -> Unit) =
-        apply { /* TODO */ }
 
     private fun showEmptyView(visible: Boolean) {
         recyclerView.visibility = if (visible) View.GONE else View.VISIBLE
@@ -103,6 +90,6 @@ fun RecyclerView.zycle(): Zycle {
     return Zycle(this)
 }
 
-fun RecyclerView.zycle(block: Zycle.() -> Unit) {
+fun RecyclerView.zycle(block: ZycleBlock) {
     zycle().apply(block).build()
 }

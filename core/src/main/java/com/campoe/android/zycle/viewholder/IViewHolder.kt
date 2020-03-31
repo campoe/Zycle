@@ -1,51 +1,36 @@
 package com.campoe.android.zycle.viewholder
 
-import android.view.DragEvent
 import android.view.MotionEvent
+import com.campoe.android.zycle.`typealias`.OnItemClickListener
+import com.campoe.android.zycle.`typealias`.OnItemLongClickListener
+import com.campoe.android.zycle.`typealias`.OnItemTouchListener
 
-interface IViewHolder<E : Any> {
-
-    fun bind(
-        item: E,
-        listeners: List<ViewHolderListener<IViewHolder<E>>>
-    )
+internal interface IViewHolder<E : Any> {
 
     fun bind(
         item: E,
-        vararg listeners: ViewHolderListener<IViewHolder<E>>
-    )
-
-    fun listen(
-        listener: ViewHolderListener<IViewHolder<E>>
+        onClick: OnItemClickListener<ViewHolder<E>>? = null,
+        onLongClick: OnItemLongClickListener<ViewHolder<E>>? = null,
+        onTouch: OnItemTouchListener<ViewHolder<E>>? = null
     )
 
     fun unbind()
 
-    interface ViewHolderListener<VH : IViewHolder<*>>
+    interface ViewListener<VH : IViewHolder<*>>
 
-    interface OnItemClickListener<VH : IViewHolder<*>>
-        : ViewHolderListener<VH> {
+    interface OnClickListener<VH : IViewHolder<*>>
+        : ViewListener<VH> {
         fun onItemClick(holder: VH)
     }
 
-    interface OnItemLongClickListener<VH : IViewHolder<*>> :
-        ViewHolderListener<VH> {
+    interface OnLongClickListener<VH : IViewHolder<*>> :
+        ViewListener<VH> {
         fun onItemLongClick(holder: VH): Boolean
     }
 
-    interface OnItemTouchListener<VH : IViewHolder<*>> :
-        ViewHolderListener<VH> {
+    interface OnTouchListener<VH : IViewHolder<*>> :
+        ViewListener<VH> {
         fun onItemTouch(holder: VH, e: MotionEvent): Boolean
-    }
-
-    interface OnItemDragListener<VH : IViewHolder<*>> :
-        ViewHolderListener<VH> {
-        fun onItemDrag(holder: VH, e: DragEvent): Boolean
-    }
-
-    interface OnItemHoverListener<VH : IViewHolder<*>> :
-        ViewHolderListener<VH> {
-        fun onItemHover(holder: VH, e: MotionEvent): Boolean
     }
 
 }

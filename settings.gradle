@@ -1,2 +1,4 @@
 rootProject.name='Zycle'
 include ':app', ':core'
+include ':pagination'
+include ':databinding'

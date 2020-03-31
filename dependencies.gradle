@@ -1,0 +1,71 @@
+ext.booleanField = { config, name, value ->
+    config.buildConfigField("boolean", name, "${value}")
+}
+
+ext.stringField = { config, name, value ->
+    config.buildConfigField("String", name, "\"${value}\"")
+}
+
+ext.valueOrDefault = { value, defaultValue ->
+    return ((value != null) ? value : defaultValue)
+}
+
+ext.propertyOrDefault = { propertyName, defaultValue ->
+    return (project.properties[propertyName] ?: defaultValue)
+}
+
+project.ext {
+
+    compileSdk = 29
+    targetSdk = 29
+    minSdk = 23
+
+    buildTools = "29.0.2"
+
+    releaseRepoName = "maven"
+    releaseUserOrg = "campoe"
+    releaseGroupId = "com.campoe.android.zycle"
+    releaseVersion = "1.0.0"
+    releaseWebsite = "https://github.com/campoe/Zycle"
+    versionCode = 1
+    versionName = "1.0"
+
+    appCompatVersion = '1.0.0'
+    coreVersion = '1.0.0'
+    recyclerViewVersion = '1.0.0'
+    junitVersion = '4.12'
+    testRunnerVersion = '1.2.0'
+    espressoVersion = '3.2.0'
+
+}
+
+ext {
+
+    kotlinDependencies = dependencies([
+            kotlin       : "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version",
+            kotlinReflect: "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    ])
+
+    androidCoreDependencies = dependencies([
+            appCompat: "androidx.appcompat:appcompat:${rootProject.appCompatVersion}",
+            coreKtx  : "androidx.core:core-ktx:${rootProject.coreVersion}"
+    ])
+
+    recyclerViewDependencies = dependencies([
+            recyclerView: "androidx.recyclerview:recyclerview:${rootProject.recyclerViewVersion}"
+    ])
+
+    unitTestingDependencies = dependencies([
+            junit: "junit:junit:${rootProject.junitVersion}"
+    ])
+
+    androidTestDependencies = dependencies([
+            runner  : "androidx.test:runner:${rootProject.testRunnerVersion}",
+            espresso: "androidx.test.espresso:espresso-core:${rootProject.espressoVersion}"
+    ])
+
+}
+
+private def static dependencies(dependenciesMap) {
+    return dependenciesMap.values()
+}
