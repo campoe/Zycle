@@ -1,54 +1,37 @@
 package com.campoe.android.zycle.viewholder
 
 import android.view.View
-import androidx.annotation.CallSuper
 import androidx.recyclerview.widget.RecyclerView
 import com.campoe.android.zycle.ZycleDsl
-import com.campoe.android.zycle.`typealias`.OnItemClickListener
-import com.campoe.android.zycle.`typealias`.OnItemLongClickListener
-import com.campoe.android.zycle.`typealias`.OnItemTouchListener
+import com.campoe.android.zycle.adapter.Adapter
+import com.campoe.android.zycle.extension.cast
+import com.campoe.android.zycle.layout.Layout
 
 @ZycleDsl
-open class ViewHolder<E : Any>(itemView: View) : RecyclerView.ViewHolder(itemView),
-    IViewHolder<E> {
+open class ViewHolder(
+    itemView: View,
+    private val layout: Layout<ViewHolder>
+) :
+    RecyclerView.ViewHolder(itemView),
+    IViewHolder {
 
-    var item: E? = null
-        protected set
+    val item: Any? // FIXME
+        get() = layout.cast<Adapter<*, *>.ItemLayout>()?.getItem(this)
 
-    @CallSuper
-    override fun bind(
-        item: E,
-        onClick: OnItemClickListener<ViewHolder<E>>?,
-        onLongClick: OnItemLongClickListener<ViewHolder<E>>?,
-        onTouch: OnItemTouchListener<ViewHolder<E>>?
-    ) {
-        this.item = item
-        onClick?.let { onClick(it) }
-        onLongClick?.let { onLongClick(it) }
-        onTouch?.let { onTouch(it) }
+    override val itemPosition: Int // FIXME
+        get() = layout.cast<Adapter<*, *>.ItemLayout>()?.getItemPosition(this)
+            ?: RecyclerView.NO_POSITION
+
+    override fun onCreateViewHolder(recyclerView: RecyclerView) {
+        layout.onCreate(this)
     }
 
-    @CallSuper
-    override fun unbind() {
-        itemView.setOnClickListener(null)
-        itemView.setOnLongClickListener(null)
-        itemView.setOnTouchListener(null)
-        item = null
+    override fun onBindViewHolder() {
+        layout.onBind(this)
     }
 
-    inline fun onClick(crossinline f: OnItemClickListener<ViewHolder<E>>) =
-        apply {
-            itemView.setOnClickListener { f(this) }
-        }
-
-    inline fun onLongClick(crossinline f: OnItemLongClickListener<ViewHolder<E>>) =
-        apply {
-            itemView.setOnLongClickListener { f(this) }
-        }
-
-    inline fun onTouch(crossinline f: OnItemTouchListener<ViewHolder<E>>) =
-        apply {
-            itemView.setOnTouchListener { _, e -> f(this, e) }
-        }
+    override fun onViewRecycled(recyclerView: RecyclerView) {
+        layout.onRecycle(this)
+    }
 
 }

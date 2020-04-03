@@ -95,7 +95,7 @@ class ObservableList<E : Any>(private val items: MutableList<E> = mutableListOf(
         callbacks.clear()
     }
 
-    class ObservableListCallback<E : Any, VH : ViewHolder<E>>(adapter: Adapter<E, VH>) :
+    class ObservableListCallback<E : Any, VH : ViewHolder>(adapter: Adapter<E, VH>) :
         IObservableList.IObservableListCallback<ObservableList<E>> {
 
         private val reference: Reference<Adapter<E, VH>> = WeakReference(adapter)

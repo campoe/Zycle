@@ -35,8 +35,11 @@ dependencies {
     implementation kotlinDependencies
     implementation recyclerViewDependencies
     implementation androidCoreDependencies
+    implementation constraintLayoutDependencies
     implementation project(':core')
     implementation project(':databinding')
+    implementation project(':pagination')
+    implementation project(':click')
     testImplementation unitTestingDependencies
     androidTestImplementation androidTestDependencies
 }

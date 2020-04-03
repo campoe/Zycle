@@ -28,23 +28,23 @@ class Zycle internal constructor(
     fun emptyView(emptyView: View) =
         apply { this.emptyView = emptyView }
 
-    fun <E : Any> adapter(adapter: Adapter<E, ViewHolder<E>>) =
+    fun <E : Any> adapter(adapter: Adapter<E, ViewHolder>) =
         apply { this.adapter = adapter }
 
     fun <E : Any> adapterOf(
         elements: MutableList<E>,
-        block: AdapterBlock<E, ViewHolder<E>>
+        block: AdapterBlock<E, ViewHolder>
     ) =
         apply { adapter = elements.toAdapter().apply(block) }
 
     fun <E : Any> adapterOf(
         elements: Array<out E>,
-        block: AdapterBlock<E, ViewHolder<E>>
+        block: AdapterBlock<E, ViewHolder>
     ) =
         apply { adapter = adapterOf(*elements).apply(block) }
 
     fun <E : Any> adapterOf(
-        block: AdapterBlock<E, ViewHolder<E>>
+        block: AdapterBlock<E, ViewHolder>
     ) =
         apply { adapter = adapterOf<E>().apply(block) }
 

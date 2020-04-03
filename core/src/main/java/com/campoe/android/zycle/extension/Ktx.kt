@@ -7,6 +7,10 @@ internal inline fun <reified T> Any.cast(): T? {
     return this as? T
 }
 
+internal inline fun <reified T> Any.requireCast(): T {
+    return this as T
+}
+
 internal fun <E : Any> DiffUtil.DiffResult.dispatchUpdatesTo(callbacks: List<ObservableList.ObservableListCallback<E, *>>) {
     callbacks.forEach { callback ->
         callback.adapter?.let { adapter -> dispatchUpdatesTo(adapter) }

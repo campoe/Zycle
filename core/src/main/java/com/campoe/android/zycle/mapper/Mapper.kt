@@ -2,13 +2,16 @@ package com.campoe.android.zycle.mapper
 
 import androidx.annotation.LayoutRes
 import com.campoe.android.zycle.ZycleDsl
-import com.campoe.android.zycle.`typealias`.*
+import com.campoe.android.zycle.`typealias`.OnBindListener
+import com.campoe.android.zycle.`typealias`.OnRecycleListener
+import com.campoe.android.zycle.`typealias`.StableIdProvider
+import com.campoe.android.zycle.eventhook.EventHook
 import com.campoe.android.zycle.viewholder.ViewHolder
 
 internal interface TypeErasedMapper
 
 @ZycleDsl
-open class Mapper<E : Any, VH : ViewHolder<E>>(
+open class Mapper<E : Any, VH : ViewHolder>(
     @LayoutRes
     internal val layoutRes: Int
 ) :
@@ -18,38 +21,28 @@ open class Mapper<E : Any, VH : ViewHolder<E>>(
     internal var stableIdProvider: StableIdProvider<E>? = null
         private set
 
-    internal var internalOnBindListener: OnBindListener<VH>? = null
+    internal var onBindListener: OnBindListener<E, VH>? = null
         private set
-    protected open val onBindListener: OnBindListener<VH>?
-        get() = internalOnBindListener
-    internal var onRecycleListener: OnRecycleListener<VH>? = null
+    internal var onRecycleListener: OnRecycleListener<E, VH>? = null
         private set
 
-    internal var onClickListener: OnItemClickListener<VH>? = null
-    internal var onLongClickListener: OnItemLongClickListener<VH>? = null
-    internal var onTouchListener: OnItemTouchListener<VH>? = null
+    internal val eventHooks: MutableList<EventHook<E, VH>> = mutableListOf()
 
     override fun stableId(f: StableIdProvider<E>): Mapper<E, VH> =
         apply { stableIdProvider = f }
 
-    override fun onBind(f: OnBindListener<VH>): Mapper<E, VH> =
-        apply { internalOnBindListener = f }
+    override fun onBind(f: OnBindListener<E, VH>): Mapper<E, VH> =
+        apply { onBindListener = f }
 
-    override fun onRecycle(f: OnRecycleListener<VH>): Mapper<E, VH> =
+    override fun onRecycle(f: OnRecycleListener<E, VH>): Mapper<E, VH> =
         apply { onRecycleListener = f }
 
-    override fun onClick(f: OnItemClickListener<VH>) =
-        apply { onClickListener = f }
-
-    override fun onLongClick(f: OnItemLongClickListener<VH>) =
-        apply { onLongClickListener = f }
-
-    override fun onTouch(f: OnItemTouchListener<VH>) =
-        apply { onTouchListener = f }
+    override fun onEvent(eventHook: EventHook<E, VH>): Mapper<E, VH> =
+        apply { eventHooks.add(eventHook) }
 
 }
 
-internal fun <T : Any> mapper(
+internal fun <T : Any, VH : ViewHolder> mapper(
     @LayoutRes layoutRes: Int
-): Mapper<T, ViewHolder<T>> =
+): Mapper<T, VH> =
     Mapper(layoutRes)
