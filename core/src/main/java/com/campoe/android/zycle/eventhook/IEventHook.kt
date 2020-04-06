@@ -1,8 +1,8 @@
 package com.campoe.android.zycle.eventhook
 
-import com.campoe.android.zycle.viewholder.ViewHolder
+import androidx.recyclerview.widget.RecyclerView
 
-internal interface IEventHook<E : Any, VH : ViewHolder> {
+internal interface IEventHook<E : Any, VH : RecyclerView.ViewHolder> {
 
     fun attach(holder: VH, item: E, position: Int)
 

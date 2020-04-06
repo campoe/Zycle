@@ -2,9 +2,11 @@ package com.campoe.android.zycle.observablelist
 
 internal interface IObservableList<E : Any> {
 
-    fun addCallback(callback: ObservableList.ObservableListCallback<E, *>)
+    fun move(fromIndex: Int, toIndex: Int)
 
-    fun removeCallback(callback: ObservableList.ObservableListCallback<E, *>)
+    fun addCallback(callback: ObservableList.ObservableListCallback<E>)
+
+    fun removeCallback(callback: ObservableList.ObservableListCallback<E>)
 
     fun removeAllCallbacks()
 

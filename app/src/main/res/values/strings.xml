@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Zycle</string>
+    <string name="icon_sample">Icon Sample</string>
+    <string name="edit_sample">Edit Sample</string>
+    <string name="open_drawer">open drawer</string>
+    <string name="close_drawer">close drawer</string>
 </resources>

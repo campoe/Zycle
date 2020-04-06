@@ -1,19 +1,16 @@
 package com.campoe.android.zycle.pagination.extension
 
-import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
-import com.campoe.android.zycle.adapter.Adapter
-import com.campoe.android.zycle.pagination.module.PaginationFooter
 import com.campoe.android.zycle.viewholder.ViewHolder
 
-fun <E : Any, VH : ViewHolder> Adapter<E, VH>.paginate(
-    @LayoutRes layoutRes: Int,
-    onLoadNext: (currentPage: Int) -> Unit
-) =
-    apply { footer(PaginationFooter<VH>(layoutRes).onLoadNext(onLoadNext)) }
+//fun <E : Any, VH : ViewHolder> Adapter<E>.paginate(
+//    @LayoutRes layoutRes: Int,
+//    onLoadNext: (currentPage: Int) -> Unit
+//) =
+//    apply { footer(PaginationFooter<VH>(layoutRes).onLoadNext(onLoadNext)) }
 
 internal fun RecyclerView.LayoutManager.findFirstVisibleItemPosition(): Int {
     return when (this) {

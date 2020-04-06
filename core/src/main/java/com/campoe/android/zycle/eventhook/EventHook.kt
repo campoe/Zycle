@@ -1,5 +1,5 @@
 package com.campoe.android.zycle.eventhook
 
-import com.campoe.android.zycle.viewholder.ViewHolder
+import androidx.recyclerview.widget.RecyclerView
 
-abstract class EventHook<E : Any, VH : ViewHolder> : IEventHook<E, VH>
+abstract class EventHook<E : Any, VH : RecyclerView.ViewHolder> : IEventHook<E, VH>

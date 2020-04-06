@@ -21,7 +21,7 @@ internal class BindingViewHolder<DB : ViewDataBinding>(
                 }
                 val adapterPosition = adapterPosition
                 if (adapterPosition != RecyclerView.NO_POSITION) {
-                    recyclerView.adapter?.notifyItemChanged(adapterPosition)
+                    recyclerView.adapter?.notifyItemChanged(adapterPosition) // TODO: goes wrong with callback when headers
                 }
             }
 

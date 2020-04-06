@@ -36,10 +36,13 @@ dependencies {
     implementation recyclerViewDependencies
     implementation androidCoreDependencies
     implementation constraintLayoutDependencies
+    implementation materialDependencies
+    implementation iconicsDependencies
     implementation project(':core')
-    implementation project(':databinding')
     implementation project(':pagination')
     implementation project(':click')
+    implementation project(':drag')
+    implementation project(':emptiness')
     testImplementation unitTestingDependencies
     androidTestImplementation androidTestDependencies
 }

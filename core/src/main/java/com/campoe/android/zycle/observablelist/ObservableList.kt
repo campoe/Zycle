@@ -3,11 +3,11 @@ package com.campoe.android.zycle.observablelist
 import android.os.Looper
 import androidx.recyclerview.widget.DiffUtil
 import com.campoe.android.zycle.adapter.Adapter
-import com.campoe.android.zycle.extension.dispatchUpdatesTo
+import com.campoe.android.zycle.ktx.dispatchUpdatesTo
 import com.campoe.android.zycle.util.DiffUtilCallback
-import com.campoe.android.zycle.viewholder.ViewHolder
 import java.lang.ref.Reference
 import java.lang.ref.WeakReference
+import java.util.*
 
 class ObservableList<E : Any>(private val items: MutableList<E> = mutableListOf()) :
     IObservableList<E>,
@@ -15,8 +15,13 @@ class ObservableList<E : Any>(private val items: MutableList<E> = mutableListOf(
 
     constructor(items: Array<out E>) : this(items.toMutableList())
 
-    private val callbacks: MutableList<ObservableListCallback<E, *>> =
+    private val callbacks: MutableList<ObservableListCallback<E>> =
         mutableListOf()
+
+    override fun move(fromIndex: Int, toIndex: Int) {
+        Collections.swap(items, fromIndex, toIndex)
+        callbacks.forEach { it.onItemRangeMoved(this, fromIndex, toIndex, 1) }
+    }
 
     override fun add(element: E): Boolean {
         val ret = items.add(element)
@@ -83,11 +88,11 @@ class ObservableList<E : Any>(private val items: MutableList<E> = mutableListOf(
         callbacks.forEach { it.onChanged(this) }
     }
 
-    override fun addCallback(callback: ObservableListCallback<E, *>) {
+    override fun addCallback(callback: ObservableListCallback<E>) {
         callbacks.add(callback)
     }
 
-    override fun removeCallback(callback: ObservableListCallback<E, *>) {
+    override fun removeCallback(callback: ObservableListCallback<E>) {
         callbacks.remove(callback)
     }
 
@@ -95,11 +100,11 @@ class ObservableList<E : Any>(private val items: MutableList<E> = mutableListOf(
         callbacks.clear()
     }
 
-    class ObservableListCallback<E : Any, VH : ViewHolder>(adapter: Adapter<E, VH>) :
+    class ObservableListCallback<E : Any>(adapter: Adapter<E>) :
         IObservableList.IObservableListCallback<ObservableList<E>> {
 
-        private val reference: Reference<Adapter<E, VH>> = WeakReference(adapter)
-        internal val adapter: Adapter<E, VH>?
+        private val reference: Reference<Adapter<E>> = WeakReference(adapter)
+        internal val adapter: Adapter<E>?
             get() {
                 if (Thread.currentThread() == Looper.getMainLooper().thread) return reference.get()
                 throw IllegalStateException("You must modify the ObservableList on the main thread.")
@@ -151,8 +156,8 @@ class ObservableList<E : Any>(private val items: MutableList<E> = mutableListOf(
 
 }
 
-internal fun <E : Any> observableListOf(): ObservableList<E> = ObservableList()
-internal fun <E : Any> observableListOf(vararg elements: E): ObservableList<E> =
+fun <E : Any> observableListOf(): ObservableList<E> = ObservableList()
+fun <E : Any> observableListOf(vararg elements: E): ObservableList<E> =
     ObservableList(elements)
 
 internal fun <E : Any> Array<out E>.toObservableList(): ObservableList<E> = ObservableList(this)

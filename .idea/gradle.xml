@@ -13,6 +13,8 @@
             <option value="$PROJECT_DIR$/click" />
             <option value="$PROJECT_DIR$/core" />
             <option value="$PROJECT_DIR$/databinding" />
+            <option value="$PROJECT_DIR$/drag" />
+            <option value="$PROJECT_DIR$/emptiness" />
             <option value="$PROJECT_DIR$/pagination" />
           </set>
         </option>
