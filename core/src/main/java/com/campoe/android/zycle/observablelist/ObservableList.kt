@@ -3,8 +3,8 @@ package com.campoe.android.zycle.observablelist
 import android.os.Looper
 import androidx.recyclerview.widget.DiffUtil
 import com.campoe.android.zycle.adapter.Adapter
+import com.campoe.android.zycle.diff.DiffUtilCallback
 import com.campoe.android.zycle.ktx.dispatchUpdatesTo
-import com.campoe.android.zycle.util.DiffUtilCallback
 import java.lang.ref.Reference
 import java.lang.ref.WeakReference
 import java.util.*
@@ -18,8 +18,17 @@ class ObservableList<E : Any>(private val items: MutableList<E> = mutableListOf(
     private val callbacks: MutableList<ObservableListCallback<E>> =
         mutableListOf()
 
+    override fun swap(i: Int, j: Int) {
+        Collections.swap(items, i, j)
+        callbacks.forEach {
+            it.onItemRangeChanged(this, i, 1)
+            it.onItemRangeChanged(this, j, 1)
+        }
+    }
+
     override fun move(fromIndex: Int, toIndex: Int) {
-        Collections.swap(items, fromIndex, toIndex)
+        val item = items.removeAt(fromIndex)
+        items.add(toIndex, item)
         callbacks.forEach { it.onItemRangeMoved(this, fromIndex, toIndex, 1) }
     }
 
@@ -54,11 +63,18 @@ class ObservableList<E : Any>(private val items: MutableList<E> = mutableListOf(
         return ret
     }
 
-    override fun removeAll(elements: Collection<E>): Boolean {
+    override fun removeAll(
+        elements: Collection<E>
+    ): Boolean {
         if (elements.size == 1) return remove(elements.single())
         val oldItems = this.toMutableList()
         val ret = items.removeAll(elements)
-        if (ret) DiffUtil.calculateDiff(DiffUtilCallback(oldItems, this))
+        if (ret) DiffUtil.calculateDiff(
+            DiffUtilCallback(
+                oldItems,
+                this
+            )
+        )
             .dispatchUpdatesTo(callbacks)
         return ret
     }
@@ -78,7 +94,12 @@ class ObservableList<E : Any>(private val items: MutableList<E> = mutableListOf(
     override fun retainAll(elements: Collection<E>): Boolean {
         val oldItems = this.toMutableList()
         val ret = items.retainAll(elements)
-        if (ret) DiffUtil.calculateDiff(DiffUtilCallback(oldItems, this))
+        if (ret) DiffUtil.calculateDiff(
+            DiffUtilCallback(
+                oldItems,
+                this
+            )
+        )
             .dispatchUpdatesTo(callbacks)
         return ret
     }

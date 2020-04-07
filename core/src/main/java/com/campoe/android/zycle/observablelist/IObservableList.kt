@@ -2,6 +2,8 @@ package com.campoe.android.zycle.observablelist
 
 internal interface IObservableList<E : Any> {
 
+    fun swap(i: Int, j: Int)
+
     fun move(fromIndex: Int, toIndex: Int)
 
     fun addCallback(callback: ObservableList.ObservableListCallback<E>)

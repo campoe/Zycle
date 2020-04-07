@@ -1,11 +1,5 @@
 package com.campoe.android.zycle.excluded
 
-import android.animation.Animator
-import androidx.annotation.LayoutRes
-import androidx.recyclerview.widget.RecyclerView
-import com.campoe.android.zycle.layout.Item
-import com.campoe.android.zycle.viewholder.ViewHolder
-
 //internal interface ILayout<E : Item<*, VH>, VH : RecyclerView.ViewHolder> {
 //
 //    @LayoutRes

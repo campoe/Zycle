@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.campoe.android.zycle.layout.RecyclerItem
+import com.campoe.android.zycle.binder.RecyclerBinder
 import com.campoe.android.zycle.observablelist.ObservableList
 import com.campoe.android.zycle.viewholder.ViewHolder
 
@@ -23,7 +23,7 @@ internal fun <E : Any> DiffUtil.DiffResult.dispatchUpdatesTo(callbacks: List<Obs
     }
 }
 
-internal fun RecyclerItem<*>.inflate(
+internal fun RecyclerBinder<*>.inflate(
     layoutInflater: LayoutInflater,
     parent: ViewGroup? = null
 ): RecyclerView.ViewHolder {
@@ -32,13 +32,13 @@ internal fun RecyclerItem<*>.inflate(
     )
 }
 
-internal fun RecyclerItem<*>.inflate(
+internal fun RecyclerBinder<*>.inflate(
     parent: ViewGroup
 ): RecyclerView.ViewHolder {
     return inflate(parent.context, parent)
 }
 
-internal fun RecyclerItem<*>.inflate(
+internal fun RecyclerBinder<*>.inflate(
     context: Context,
     parent: ViewGroup? = null
 ): RecyclerView.ViewHolder {

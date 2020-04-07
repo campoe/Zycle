@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId "com.campoe.android.zycle"
-        minSdkVersion 23
+        minSdkVersion 26
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
@@ -38,11 +38,12 @@ dependencies {
     implementation constraintLayoutDependencies
     implementation materialDependencies
     implementation iconicsDependencies
+    implementation glideDependencies
     implementation project(':core')
-    implementation project(':pagination')
     implementation project(':click')
     implementation project(':drag')
     implementation project(':emptiness')
     testImplementation unitTestingDependencies
     androidTestImplementation androidTestDependencies
+    annotationProcessor kaptGlideDependencies
 }

@@ -2,7 +2,7 @@
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="5dp"
+    android:layout_margin="3dp"
     android:orientation="horizontal">
 
     <TextView
@@ -12,6 +12,7 @@
         android:layout_gravity="center_vertical"
         android:background="?android:attr/selectableItemBackground"
         android:clickable="false"
+        android:textColor="@color/colorOnSurface"
         android:gravity="center_vertical"
         android:maxLines="2"
         android:paddingStart="56dp"

@@ -7,19 +7,20 @@ import androidx.collection.SparseArrayCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.campoe.android.zycle.ZycleDsl
 import com.campoe.android.zycle.`typealias`.*
+import com.campoe.android.zycle.binder.Binder
+import com.campoe.android.zycle.binder.RecyclerBinder
 import com.campoe.android.zycle.eventhook.EventHook
 import com.campoe.android.zycle.eventhook.Hookable
 import com.campoe.android.zycle.eventhook.attachEvents
 import com.campoe.android.zycle.extension.AdapterExtension
 import com.campoe.android.zycle.extension.Extendable
 import com.campoe.android.zycle.ktx.cast
-import com.campoe.android.zycle.layout.Item
-import com.campoe.android.zycle.layout.RecyclerItem
+import com.campoe.android.zycle.mapper.Mapper
 import com.campoe.android.zycle.observablelist.ObservableList
 import com.campoe.android.zycle.viewholder.ViewHolder
 
 abstract class Adapter<E : Any> internal constructor(
-    internal val items: MutableList<E> = mutableListOf(),
+    internal val items: List<E> = emptyList(),
     private val extensionPoints: MutableList<AdapterExtension> = mutableListOf()
 ) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>(), IAdapter<E> {
@@ -76,7 +77,7 @@ abstract class Adapter<E : Any> internal constructor(
 
     @ZycleDsl
     class Builder<E : Any> internal constructor() : IAdapter.IBuilder<E>,
-        Hookable<E, RecyclerView.ViewHolder>, Extendable {
+        Hookable<E, RecyclerView.ViewHolder>, Extendable, Mapper<E>() {
 
         private var viewTypeProvider: ViewTypeProvider<E>? = null
         private var layoutProvider: LayoutProvider? = null
@@ -86,74 +87,12 @@ abstract class Adapter<E : Any> internal constructor(
         private var onBindListener: OnBindListener<E, RecyclerView.ViewHolder>? = null
         private var onRecycleListener: OnRecycleListener<RecyclerView.ViewHolder>? = null
 
-        private val map: MutableMap<Class<*>, RecyclerItem<E>> = mutableMapOf()
-
         private val extensionPoints: MutableList<AdapterExtension> = mutableListOf()
         override val eventHooks: MutableList<EventHook<E, RecyclerView.ViewHolder>> =
             mutableListOf()
 
         override fun extendWith(extensionPoint: AdapterExtension) =
             apply { extensionPoints.add(extensionPoint) }
-
-        @Suppress("UNCHECKED_CAST")
-        fun <T : E> map(clazz: Class<T>, item: RecyclerItem<T>) =
-            apply { map[clazz] = item as RecyclerItem<E> }
-
-        inline fun <reified T : E> map(item: RecyclerItem<T>) =
-            map(T::class.java, item)
-
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : E> map(
-            clazz: Class<T>,
-            @LayoutRes
-            layoutRes: Int,
-            viewType: Int,
-            block: ItemBuilderBlock<T>?
-        ): Builder<E> =
-            apply {
-                map[clazz] = Item.Builder<T>(layoutRes, viewType)
-                    .apply { block?.invoke(this) }.build() as RecyclerItem<E>
-            }
-
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : E> map(
-            clazz: Class<T>,
-            @LayoutRes
-            layoutRes: Int,
-            block: ItemBuilderBlock<T>?
-        ): Builder<E> =
-            apply {
-                map[clazz] =
-                    Item.Builder<T>(
-                            layoutRes,
-                            clazz.name.hashCode()
-                        )
-                        .apply { block?.invoke(this) }.build() as RecyclerItem<E>
-            }
-
-        inline fun <reified T : E> map(
-            @LayoutRes layoutRes: Int
-        ) =
-            map(T::class.java, layoutRes)
-
-        inline fun <reified T : E> map(
-            @LayoutRes layoutRes: Int,
-            viewType: Int
-        ) =
-            map(T::class.java, layoutRes, viewType)
-
-        inline fun <reified T : E> map(
-            @LayoutRes layoutRes: Int,
-            noinline block: ItemBuilderBlock<T>
-        ) =
-            map(T::class.java, layoutRes, block)
-
-        inline fun <reified T : E> map(
-            @LayoutRes layoutRes: Int,
-            viewType: Int,
-            noinline block: ItemBuilderBlock<T>
-        ) =
-            map(T::class.java, layoutRes, viewType, block)
 
         override fun viewType(f: ViewTypeProvider<E>): Builder<E> =
             apply { viewTypeProvider = f }
@@ -187,12 +126,6 @@ abstract class Adapter<E : Any> internal constructor(
                 }
 
                 private val viewTypes: SparseArrayCompat<Class<*>> = SparseArrayCompat(1)
-
-                override fun getStableId(item: E, position: Int): Long {
-                    return stableIdProvider?.invoke(item, position)
-                        ?: map[item.javaClass]?.getStableId(item, position)
-                        ?: throw RuntimeException()
-                }
 
                 override fun getLayoutRes(viewType: Int): Int {
                     return layoutProvider?.invoke(viewType)
@@ -262,7 +195,7 @@ abstract class Adapter<E : Any> internal constructor(
                 override fun getItemId(position: Int): Long {
                     val item = getItem(position) ?: return super.getItemId(position)
                     return stableIdProvider?.invoke(item, position)
-                        ?: map[item.javaClass]?.getStableId(item, position)
+                        ?: map[item.javaClass]?.getItemId(item, position)
                         ?: super.getItemId(position)
                 }
             }
