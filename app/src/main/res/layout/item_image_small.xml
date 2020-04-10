@@ -6,13 +6,17 @@
     android:layout_margin="5dp"
     android:orientation="horizontal">
 
-    <ImageView
-        android:id="@+id/image"
+    <TextView
+        android:id="@+id/title_text"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:adjustViewBounds="true"
-        android:scaleType="center"
-        tools:src="@tools:sample/backgrounds/scenic" />
+        android:layout_height="match_parent"
+        android:layout_gravity="center_vertical"
+        android:gravity="center_vertical|start"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:textColor="@color/colorOnSurface"
+        android:textSize="22sp"
+        tools:text="&#128557;" />
 
     <TextView
         android:id="@+id/id_text"
@@ -29,7 +33,7 @@
         android:shadowDx="1"
         android:shadowDy="1"
         android:shadowRadius="1"
-        android:textColor="@android:color/white"
+        android:textColor="@color/colorOnSurface"
         android:textSize="12sp"
         tools:text="@tools:sample/date/ddmmyy" />
 

@@ -74,12 +74,6 @@ ext {
             constraintLayout: "androidx.constraintlayout:constraintlayout:${rootProject.constraintLayoutVersion}"
     ])
 
-    iconicsDependencies = dependencies([
-            iconics              : "com.mikepenz:iconics-core:4.0.2",
-            iconicsViews         : "com.mikepenz:iconics-views:4.0.2",
-            iconicsFontAwesome   : "com.mikepenz:fontawesome-typeface:5.9.0.0-kotlin@aar"
-    ])
-
     unitTestingDependencies = dependencies([
             junit: "junit:junit:${rootProject.junitVersion}"
     ])

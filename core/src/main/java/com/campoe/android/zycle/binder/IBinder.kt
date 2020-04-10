@@ -19,6 +19,7 @@ internal interface IBinder<E : Any, VH : RecyclerView.ViewHolder> {
 
     fun hasStableIds(): Boolean
     fun getItemId(item: E, position: Int): Long
+    fun isEnabled(item: E, position: Int): Boolean
 
     fun onCreate(holder: VH)
     fun onBind(holder: VH, item: E)
@@ -28,7 +29,7 @@ internal interface IBinder<E : Any, VH : RecyclerView.ViewHolder> {
         Builder<Binder<E, VH>> {
 
         @get:IdRes
-        val viewType: Int
+        val viewType: Int?
 
         @get:LayoutRes
         val layoutRes: Int

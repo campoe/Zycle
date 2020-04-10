@@ -11,15 +11,15 @@ import com.campoe.android.zycle.eventhook.Hookable
 
 internal typealias RecyclerBinder<E> = Binder<E, RecyclerView.ViewHolder>
 
-abstract class Binder<E : Any, VH : RecyclerView.ViewHolder> : IBinder<E, VH>, Hookable<E, VH> {
+abstract class Binder<E : Any, VH : RecyclerView.ViewHolder> : IBinder<E, VH> {
 
     override val viewType: Int
         get() = javaClass.name.hashCode()
 
-    override val eventHooks: MutableList<EventHook<E, VH>> = mutableListOf()
-
     override fun hasStableIds(): Boolean = false
     override fun getItemId(item: E, position: Int): Long = RecyclerView.NO_ID
+    override fun isEnabled(item: E, position: Int): Boolean = true
+
     override fun onCreate(holder: VH) = Unit
     override fun onBind(holder: VH, item: E) = Unit
     override fun onRecycle(holder: VH) = Unit
@@ -27,7 +27,7 @@ abstract class Binder<E : Any, VH : RecyclerView.ViewHolder> : IBinder<E, VH>, H
     @ZycleDsl
     class Builder<E : Any> internal constructor(
         override val layoutRes: Int,
-        override val viewType: Int
+        override val viewType: Int = RecyclerView.INVALID_TYPE
     ) :
         IBinder.IBuilder<E, RecyclerView.ViewHolder>, Hookable<E, RecyclerView.ViewHolder> {
 
@@ -55,7 +55,7 @@ abstract class Binder<E : Any, VH : RecyclerView.ViewHolder> : IBinder<E, VH>, H
         override fun build(): RecyclerBinder<E> {
             return object : RecyclerBinder<E>() {
                 override val viewType: Int
-                    get() = this@Builder.viewType
+                    get() = if (this@Builder.viewType == RecyclerView.INVALID_TYPE) super.viewType else this@Builder.viewType
 
                 override fun hasStableIds(): Boolean = stableIdProvider != null
 

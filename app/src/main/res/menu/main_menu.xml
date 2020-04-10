@@ -1,15 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item
-        android:id="@+id/switch_grid"
-        android:icon="@drawable/view_grid"
-        android:title="Show grid"
-        android:visible="false"
-        app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/switch_list"
-        android:icon="@drawable/view_list"
-        android:title="Show list"
-        app:showAsAction="ifRoom" />
+
+    <group android:checkableBehavior="none">
+        <item
+            android:id="@+id/hide_list"
+            android:icon="@drawable/eye_off"
+            android:title="Hide list"
+            app:showAsAction="ifRoom" />
+
+        <item
+            android:id="@+id/show_list"
+            android:icon="@drawable/eye"
+            android:title="Show list"
+            android:visible="false"
+            app:showAsAction="ifRoom" />
+    </group>
+
+    <group android:checkableBehavior="none">
+        <item
+            android:id="@+id/switch_grid"
+            android:icon="@drawable/view_grid"
+            android:title="Switch grid"
+            app:showAsAction="ifRoom" />
+        <item
+            android:id="@+id/switch_list"
+            android:icon="@drawable/view_list"
+            android:title="Switch list"
+            android:visible="false"
+            app:showAsAction="ifRoom" />
+    </group>
 </menu>

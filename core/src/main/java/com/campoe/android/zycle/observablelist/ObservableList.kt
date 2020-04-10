@@ -14,6 +14,7 @@ class ObservableList<E : Any>(private val items: MutableList<E> = mutableListOf(
     MutableList<E> by items {
 
     constructor(items: Array<out E>) : this(items.toMutableList())
+    constructor(items: Iterable<E>) : this(items.toMutableList())
 
     private val callbacks: MutableList<ObservableListCallback<E>> =
         mutableListOf()
@@ -121,11 +122,11 @@ class ObservableList<E : Any>(private val items: MutableList<E> = mutableListOf(
         callbacks.clear()
     }
 
-    class ObservableListCallback<E : Any>(adapter: Adapter<E>) :
+    class ObservableListCallback<E : Any>(adapter: Adapter) :
         IObservableList.IObservableListCallback<ObservableList<E>> {
 
-        private val reference: Reference<Adapter<E>> = WeakReference(adapter)
-        internal val adapter: Adapter<E>?
+        private val reference: Reference<Adapter> = WeakReference(adapter)
+        internal val adapter: Adapter?
             get() {
                 if (Thread.currentThread() == Looper.getMainLooper().thread) return reference.get()
                 throw IllegalStateException("You must modify the ObservableList on the main thread.")
@@ -170,6 +171,7 @@ class ObservableList<E : Any>(private val items: MutableList<E> = mutableListOf(
             positionStart: Int,
             itemCount: Int
         ) {
+            IntArray(3).toList()
             adapter?.notifyItemRangeChanged(positionStart, itemCount)
         }
 
@@ -181,4 +183,5 @@ fun <E : Any> observableListOf(): ObservableList<E> = ObservableList()
 fun <E : Any> observableListOf(vararg elements: E): ObservableList<E> =
     ObservableList(elements)
 
-internal fun <E : Any> Array<out E>.toObservableList(): ObservableList<E> = ObservableList(this)
+fun <E : Any> Array<out E>.toObservableList(): ObservableList<E> = ObservableList(this)
+fun <E : Any> Iterable<E>.toObservableList(): ObservableList<E> = ObservableList(this)

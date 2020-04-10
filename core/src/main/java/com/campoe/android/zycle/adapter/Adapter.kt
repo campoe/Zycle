@@ -2,205 +2,250 @@ package com.campoe.android.zycle.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.annotation.CallSuper
+import androidx.annotation.IdRes
 import androidx.annotation.LayoutRes
-import androidx.collection.SparseArrayCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.campoe.android.zycle.ZycleDsl
-import com.campoe.android.zycle.`typealias`.*
+import com.campoe.android.zycle.`typealias`.AdapterBlock
+import com.campoe.android.zycle.`typealias`.AdapterBuilderBlock
+import com.campoe.android.zycle.`typealias`.BinderBuilderBlock
+import com.campoe.android.zycle.`typealias`.MapperBuilderBlock
+import com.campoe.android.zycle.adapter.composite.CompositeAdapter
+import com.campoe.android.zycle.adapter.conditional.ConditionalAdapter
+import com.campoe.android.zycle.adapter.conditional.ConditionalElseAdapter
+import com.campoe.android.zycle.adapter.observer.AdapterDataObservable
+import com.campoe.android.zycle.adapter.observer.AdapterDataObserver
+import com.campoe.android.zycle.adapter.transformer.Transformer
 import com.campoe.android.zycle.binder.Binder
 import com.campoe.android.zycle.binder.RecyclerBinder
-import com.campoe.android.zycle.eventhook.EventHook
-import com.campoe.android.zycle.eventhook.Hookable
-import com.campoe.android.zycle.eventhook.attachEvents
-import com.campoe.android.zycle.extension.AdapterExtension
-import com.campoe.android.zycle.extension.Extendable
-import com.campoe.android.zycle.ktx.cast
+import com.campoe.android.zycle.condition.Condition
 import com.campoe.android.zycle.mapper.Mapper
-import com.campoe.android.zycle.observablelist.ObservableList
-import com.campoe.android.zycle.viewholder.ViewHolder
 
-abstract class Adapter<E : Any> internal constructor(
-    internal val items: List<E> = emptyList(),
-    private val extensionPoints: MutableList<AdapterExtension> = mutableListOf()
-) :
-    RecyclerView.Adapter<RecyclerView.ViewHolder>(), IAdapter<E> {
+abstract class Adapter : IAdapter {
 
-    constructor(items: MutableList<E>) : this(items, mutableListOf())
-    constructor(items: Array<out E>) : this(items.toMutableList())
-
-    @Suppress("LeakingThis")
-    protected var callback: ObservableList.ObservableListCallback<E> =
-        ObservableList.ObservableListCallback(this)
+    private val observable: AdapterDataObservable =
+        AdapterDataObservable()
 
     protected var layoutInflater: LayoutInflater? = null
-    protected var recyclerView: RecyclerView? = null
+        private set
 
-    override fun attach(view: RecyclerView) =
-        apply { view.adapter = this }
+    override val hasStableIds: Boolean = false
 
-    override fun detach() =
-        apply { recyclerView?.adapter = null }
+    abstract override fun getItemCount(): Int
+    abstract override fun getItemViewType(position: Int): Int
 
-    override fun getItemCount(): Int {
-        return items.size
+    final override fun attach(recyclerView: RecyclerView) =
+        apply { recyclerView.adapter = RecyclerAdapter(this) }
+
+    override fun isEnabled(position: Int): Boolean = true
+    override fun flatten(): Adapter = this
+
+    override fun compose(transformer: Transformer): Adapter =
+        transformer.transform(this)
+
+    protected open fun onFirstObserverRegistered() = Unit
+    protected open fun onLastObserverUnregistered() = Unit
+
+    abstract override fun getLayoutRes(viewType: Int): Int
+
+    override fun getItemId(position: Int): Long = RecyclerView.NO_ID
+
+    abstract override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): RecyclerView.ViewHolder
+
+    abstract override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int)
+
+    override fun onBindViewHolder(
+        holder: RecyclerView.ViewHolder,
+        position: Int,
+        payloads: List<Any>
+    ) {
+        onBindViewHolder(holder, position)
     }
 
-    internal fun extendWith(onAttach: OnAttachListener, onDetach: OnDetachListener) {
-        extensionPoints.add(object : AdapterExtension() {
-            override fun onAttach(recyclerView: RecyclerView) = onAttach(recyclerView)
-            override fun onDetach(recyclerView: RecyclerView) = onDetach(recyclerView)
-        })
-    }
+    override fun onViewRecycled(holder: RecyclerView.ViewHolder) = Unit
 
-    final override fun onAttachedToRecyclerView(view: RecyclerView) {
-        if (recyclerView == null) {
-            if (items is ObservableList) items.addCallback(callback)
-            recyclerView = view
-            layoutInflater = LayoutInflater.from(view.context)
-            extensionPoints.forEach { it.onAttach(view) }
+    override fun onFailedToRecycleView(holder: RecyclerView.ViewHolder): Boolean = false
+
+    override fun onViewAttachedToWindow(holder: RecyclerView.ViewHolder) = Unit
+
+    override fun onViewDetachedFromWindow(holder: RecyclerView.ViewHolder) = Unit
+
+    final override fun hasObservers(): Boolean = observable.hasObservers()
+
+    final override fun notifyDataSetChanged() = observable.notifyChanged()
+
+    final override fun notifyItemChanged(position: Int) =
+        observable.notifyItemRangeChanged(position, 1)
+
+    final override fun notifyItemChanged(position: Int, payload: Any?) =
+        observable.notifyItemRangeChanged(position, 1, payload)
+
+    final override fun notifyItemRangeChanged(positionStart: Int, itemCount: Int) =
+        observable.notifyItemRangeChanged(positionStart, itemCount)
+
+    final override fun notifyItemRangeChanged(positionStart: Int, itemCount: Int, payload: Any?) =
+        observable.notifyItemRangeChanged(positionStart, itemCount, payload)
+
+    final override fun notifyItemInserted(position: Int) =
+        observable.notifyItemRangeInserted(position, 1)
+
+    final override fun notifyItemMoved(fromPosition: Int, toPosition: Int) =
+        observable.notifyItemRangeMoved(fromPosition, toPosition, 1)
+
+    final override fun notifyItemRangeInserted(positionStart: Int, itemCount: Int) =
+        observable.notifyItemRangeInserted(positionStart, itemCount)
+
+    final override fun notifyItemRemoved(position: Int) =
+        observable.notifyItemRangeRemoved(position, 1)
+
+    final override fun notifyItemRangeRemoved(positionStart: Int, itemCount: Int) =
+        observable.notifyItemRangeRemoved(positionStart, itemCount)
+
+    @CallSuper
+    override fun registerAdapterDataObserver(observer: AdapterDataObserver) {
+        val hasObservers = hasObservers()
+        observable.registerObserver(observer)
+        if (!hasObservers) {
+            onFirstObserverRegistered()
         }
     }
 
-    final override fun onDetachedFromRecyclerView(view: RecyclerView) {
-        if (recyclerView != null) {
-            if (items is ObservableList) items.removeCallback(callback)
-            extensionPoints.forEach { it.onDetach(view) }
-            recyclerView = null
-            layoutInflater = null
+    @CallSuper
+    override fun unregisterAdapterDataObserver(observer: AdapterDataObserver) {
+        observable.unregisterObserver(observer)
+        if (!hasObservers()) {
+            onLastObserverUnregistered()
         }
     }
 
-    protected fun getItem(position: Int): E? {
-        if (position < 0 || position >= items.size) return null
-        return items[position]
+    fun notifyItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int) {
+        for (i in itemCount - 1 downTo 0) notifyItemMoved(
+            fromPosition + i,
+            toPosition + i
+        )
+    }
+
+    final override fun prepend(adapter: Adapter): Adapter {
+        return CompositeAdapter(
+            adapter,
+            this
+        )
+    }
+
+    final override fun append(adapter: Adapter): Adapter {
+        return CompositeAdapter(
+            this,
+            adapter
+        )
+    }
+
+    final override fun prepend(vararg adapters: Adapter): Adapter {
+        return if (adapters.isEmpty()) this
+        else CompositeAdapter(
+            *adapters,
+            this
+        )
+    }
+
+    final override fun append(vararg adapters: Adapter): Adapter {
+        return if (adapters.isEmpty()) this
+        else CompositeAdapter(
+            this,
+            *adapters
+        )
+    }
+
+    final override fun showIf(condition: Condition): Adapter =
+        ConditionalAdapter(this, condition)
+
+    final override fun showIfElse(condition: Condition, layoutRes: Int): Adapter =
+        ConditionalElseAdapter(this, condition, layoutRes)
+
+    @CallSuper
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        layoutInflater = LayoutInflater.from(recyclerView.context)
+    }
+
+    @CallSuper
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        layoutInflater = null
     }
 
     @ZycleDsl
-    class Builder<E : Any> internal constructor() : IAdapter.IBuilder<E>,
-        Hookable<E, RecyclerView.ViewHolder>, Extendable, Mapper<E>() {
+    class Builder private constructor(private var compositeBuilder: CompositeAdapter.Builder) :
+        IAdapter.IBuilder {
 
-        private var viewTypeProvider: ViewTypeProvider<E>? = null
-        private var layoutProvider: LayoutProvider? = null
-        private var stableIdProvider: StableIdProvider<E>? = null
+        constructor() : this(CompositeAdapter.Builder())
 
-        private var onCreateListener: OnCreateListener<RecyclerView.ViewHolder>? = null
-        private var onBindListener: OnBindListener<E, RecyclerView.ViewHolder>? = null
-        private var onRecycleListener: OnRecycleListener<RecyclerView.ViewHolder>? = null
+        override fun prepend(adapter: Adapter) =
+            apply { compositeBuilder.prepend(adapter) }
 
-        private val extensionPoints: MutableList<AdapterExtension> = mutableListOf()
-        override val eventHooks: MutableList<EventHook<E, RecyclerView.ViewHolder>> =
-            mutableListOf()
+        override fun prepend(vararg adapters: Adapter) =
+            apply { compositeBuilder.prepend(*adapters) }
 
-        override fun extendWith(extensionPoint: AdapterExtension) =
-            apply { extensionPoints.add(extensionPoint) }
+        override fun append(adapter: Adapter) =
+            apply { compositeBuilder.append(adapter) }
 
-        override fun viewType(f: ViewTypeProvider<E>): Builder<E> =
-            apply { viewTypeProvider = f }
+        override fun append(vararg adapters: Adapter) =
+            apply { compositeBuilder.append(*adapters) }
 
-        override fun layout(f: LayoutProvider): Builder<E> =
-            apply { layoutProvider = f }
+        override fun flatten() =
+            apply { compositeBuilder.flatten() }
 
-        override fun stableId(f: StableIdProvider<E>): Builder<E> =
-            apply { stableIdProvider = f }
+        override fun postBuild(block: AdapterBlock): Builder =
+            apply { compositeBuilder.postBuild(block) }
 
-        override fun onCreate(f: OnCreateListener<RecyclerView.ViewHolder>): Builder<E> =
-            apply { onCreateListener = f }
+        override fun viewsOf(@LayoutRes vararg layouts: Int) =
+            append(viewAdapterOf(*layouts))
 
-        override fun onBind(f: OnBindListener<E, RecyclerView.ViewHolder>): Builder<E> =
-            apply { onBindListener = f }
+        override fun adapterOf(
+            block: AdapterBuilderBlock
+        ) =
+            append(Builder().apply(block).build())
 
-        override fun onRecycle(f: OnRecycleListener<RecyclerView.ViewHolder>): Builder<E> =
-            apply { onRecycleListener = f }
+        override fun <E : Any> adapterOf(items: List<E>, mapper: Mapper<E>): Builder =
+            append(itemAdapterOf(items, mapper))
 
-        override fun build(): Adapter<E> =
-            build(mutableListOf())
+        override fun <E : Any> adapterOf(items: List<E>, block: MapperBuilderBlock<E>): Builder {
+            val mapperBuilder = Mapper.Builder<E>()
+            return append(itemAdapterOf(items, mapperBuilder.apply(block).build()))
+        }
 
-        fun build(items: Array<out E>): Adapter<E> = build(items.toMutableList())
+        override fun <E : Any> adapterOf(items: List<E>, binder: RecyclerBinder<E>): Builder =
+            append(itemAdapterOf(items, binder))
 
-        fun build(items: MutableList<E>): Adapter<E> {
-            return object : Adapter<E>(items, extensionPoints) {
-                init {
-                    setHasStableIds(hasStableIds() || map.any {
-                        it.value.hasStableIds()
-                    })
-                }
+        override fun <E : Any> adapterOf(
+            items: List<E>,
+            @LayoutRes
+            layoutRes: Int,
+            block: BinderBuilderBlock<E>
+        ): Builder {
+            val binderBuilder = Binder.Builder<E>(layoutRes)
+            return append(itemAdapterOf(items, binderBuilder.apply(block).build()))
+        }
 
-                private val viewTypes: SparseArrayCompat<Class<*>> = SparseArrayCompat(1)
+        override fun <E : Any> adapterOf(
+            items: List<E>,
+            @LayoutRes
+            layoutRes: Int,
+            @IdRes
+            viewType: Int,
+            block: BinderBuilderBlock<E>
+        ): Builder {
+            val binderBuilder = Binder.Builder<E>(layoutRes, viewType)
+            return append(itemAdapterOf(items, binderBuilder.apply(block).build()))
+        }
 
-                override fun getLayoutRes(viewType: Int): Int {
-                    return layoutProvider?.invoke(viewType)
-                        ?: map[viewTypes[viewType]]?.layoutRes
-                        ?: throw RuntimeException()
-                }
-
-                override fun onCreateViewHolder(
-                    parent: ViewGroup,
-                    viewType: Int
-                ): RecyclerView.ViewHolder {
-                    if (layoutInflater == null) layoutInflater =
-                        LayoutInflater.from(parent.context) // TODO: create in onAttach
-                    val clazz = viewTypes[viewType]
-                    val item = map[clazz]
-                    val layoutRes = layoutProvider?.invoke(viewType)
-                        ?: item?.layoutRes ?: throw RuntimeException()
-                    val itemView = layoutInflater!!.inflate(layoutRes, parent, false)
-                    val holder = ViewHolder(itemView)
-                    onCreateListener?.invoke(holder)
-                        ?: item?.onCreate(holder)
-                    holder.cast<ViewHolder>()?.also {
-                        it.onCreateViewHolder(recyclerView!!)
-                    }
-                    return holder
-                }
-
-                override fun onBindViewHolder(
-                    holder: RecyclerView.ViewHolder,
-                    position: Int
-                ) {
-                    val item = getItem(position) ?: throw RuntimeException()
-                    attachEvents(holder, item, holder.adapterPosition)
-                    val mapper = map[viewTypes[holder.itemViewType]]
-                    mapper?.attachEvents(holder, item, holder.adapterPosition)
-                    onBindListener?.invoke(holder, item)
-                        ?: mapper?.onBind(
-                            holder,
-                            item
-                        )
-                    holder.cast<ViewHolder>()?.also {
-                        it.onBindViewHolder()
-                    }
-                }
-
-                override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
-                    if (holder.adapterPosition != RecyclerView.NO_POSITION) {
-                        onRecycleListener?.invoke(holder)
-                            ?: map[viewTypes[holder.itemViewType]]?.onRecycle(holder)
-                        holder.cast<ViewHolder>()?.also {
-                            it.onViewRecycled(recyclerView!!)
-                        }
-                    }
-                }
-
-                override fun getItemViewType(position: Int): Int {
-                    val item = getItem(position) ?: throw RuntimeException()
-                    val clazz = item.javaClass
-                    val viewType = viewTypeProvider?.invoke(item, position)
-                        ?: map[clazz]?.viewType ?: super.getItemViewType(position)
-                    if (!viewTypes.containsKey(viewType)) {
-                        viewTypes.put(viewType, clazz)
-                    }
-                    return viewType
-                }
-
-                override fun getItemId(position: Int): Long {
-                    val item = getItem(position) ?: return super.getItemId(position)
-                    return stableIdProvider?.invoke(item, position)
-                        ?: map[item.javaClass]?.getItemId(item, position)
-                        ?: super.getItemId(position)
-                }
-            }
+        override fun build(): Adapter {
+            return compositeBuilder.build()
         }
 
     }
 
 }
+
+internal fun emptyAdapter(): Adapter = EmptyAdapter
