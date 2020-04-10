@@ -26,6 +26,8 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Objects;
 
+import kotlin.Unit;
+
 public class MainJavaActivity extends AppCompatActivity {
 
     private static final int Sections = 5;
@@ -73,6 +75,7 @@ public class MainJavaActivity extends AppCompatActivity {
 
         HookableKt.onClick(itemBinder, (holder, item, position) -> {
             Snackbar.make(holder.itemView, item.getDescription(), Snackbar.LENGTH_SHORT).show();
+            return Unit.INSTANCE;
         });
 
         recyclerView = findViewById(R.id.recyclerView);

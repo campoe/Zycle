@@ -13,9 +13,9 @@ import com.campoe.android.zycle.app.binder.HeaderBinder
 import com.campoe.android.zycle.app.binder.ItemBinder
 import com.campoe.android.zycle.app.stickyheader.StickyHeaderListener
 import com.campoe.android.zycle.condition.Condition
+import com.campoe.android.zycle.ktx.observableListOf
 import com.campoe.android.zycle.ktx.onClick
 import com.campoe.android.zycle.observablelist.ObservableList
-import com.campoe.android.zycle.observablelist.observableListOf
 import com.campoe.android.zycle.zycle
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_sample.*
@@ -75,11 +75,10 @@ class MainKotlinActivity : AppCompatActivity(),
                     }
                 }
                 viewsOf(R.layout.footer_bottom)
-            }.also {
-                adapterPositionLookup =
-                    AdapterPositionLookup(
-                        it
-                    )
+                postBuild {
+                    adapterPositionLookup = AdapterPositionLookup(this)
+                    this
+                }
             }
         }
 

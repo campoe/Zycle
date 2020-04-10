@@ -78,11 +78,11 @@ internal class ConditionalElseAdapter(
 
     override fun onChanged(preItemCount: Int, postItemCount: Int) {
         if (isVisible) {
-            notifyItemChanged(0)
-            notifyItemRangeInserted(1, postItemCount - 1)
+            notifyItemRemoved(0)
+            notifyItemRangeInserted(0, postItemCount)
         } else {
-            notifyItemRangeRemoved(1, preItemCount - 1)
-            notifyItemChanged(0)
+            notifyItemRangeRemoved(0, preItemCount)
+            notifyItemInserted(0)
         }
     }
 
