@@ -18,15 +18,13 @@ import com.campoe.android.zycle.adapter.Adapter;
 import com.campoe.android.zycle.adapter.util.AdapterPositionLookup;
 import com.campoe.android.zycle.app.binder.HeaderBinder;
 import com.campoe.android.zycle.app.binder.ItemBinder;
-import com.campoe.android.zycle.click.ktx.KtxKt;
 import com.campoe.android.zycle.condition.Condition;
+import com.campoe.android.zycle.ktx.HookableKt;
 import com.campoe.android.zycle.mapper.Mapper;
 import com.campoe.android.zycle.observablelist.ObservableList;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Objects;
-
-import kotlin.Unit;
 
 public class MainJavaActivity extends AppCompatActivity {
 
@@ -73,9 +71,8 @@ public class MainJavaActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        KtxKt.onClick(itemBinder, (holder, item, position) -> { // TODO: write in a different way
+        HookableKt.onClick(itemBinder, (holder, item, position) -> {
             Snackbar.make(holder.itemView, item.getDescription(), Snackbar.LENGTH_SHORT).show();
-            return Unit.INSTANCE; // TODO: don't require return of Unit
         });
 
         recyclerView = findViewById(R.id.recyclerView);

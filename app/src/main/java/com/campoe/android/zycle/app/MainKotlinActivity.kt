@@ -12,8 +12,8 @@ import com.campoe.android.zycle.adapter.util.AdapterPositionLookup
 import com.campoe.android.zycle.app.binder.HeaderBinder
 import com.campoe.android.zycle.app.binder.ItemBinder
 import com.campoe.android.zycle.app.stickyheader.StickyHeaderListener
-import com.campoe.android.zycle.click.ktx.onClick
 import com.campoe.android.zycle.condition.Condition
+import com.campoe.android.zycle.ktx.onClick
 import com.campoe.android.zycle.observablelist.ObservableList
 import com.campoe.android.zycle.observablelist.observableListOf
 import com.campoe.android.zycle.zycle
@@ -57,10 +57,6 @@ class MainKotlinActivity : AppCompatActivity(),
 
         setSupportActionBar(toolbar)
 
-        itemBinder.onClick { item, _ ->
-            Snackbar.make(this.itemView, item.description, Snackbar.LENGTH_SHORT).show()
-        }
-
         recyclerView.zycle {
             layoutManager(LinearLayoutManager(this@MainKotlinActivity))
             adapter {
@@ -68,6 +64,10 @@ class MainKotlinActivity : AppCompatActivity(),
                 adapterOf {
                     adapterOf(list) {
                         map(headerBinder)
+                        itemBinder.onClick { item, _ ->
+                            Snackbar.make(this.itemView, item.description, Snackbar.LENGTH_SHORT)
+                                .show()
+                        }
                         map(itemBinder)
                     }
                     postBuild {

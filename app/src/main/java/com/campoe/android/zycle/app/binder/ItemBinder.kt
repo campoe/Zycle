@@ -7,11 +7,16 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.campoe.android.zycle.R
 import com.campoe.android.zycle.binder.Binder
+import com.campoe.android.zycle.diff.Diffable
+import com.campoe.android.zycle.eventhook.EventHook
 import com.campoe.android.zycle.eventhook.Hookable
 import kotlinx.android.synthetic.main.item_image.view.*
 
 class ItemBinder : Binder<ItemBinder.Item, RecyclerView.ViewHolder>(),
     Hookable<ItemBinder.Item, RecyclerView.ViewHolder> {
+
+    override val eventHooks: MutableCollection<EventHook<Item, RecyclerView.ViewHolder>> =
+        mutableListOf()
 
     private var layoutList: Boolean = true
     override val layoutRes: Int
@@ -63,6 +68,14 @@ class ItemBinder : Binder<ItemBinder.Item, RecyclerView.ViewHolder>(),
         val title: String,
         val description: String,
         val imageUrl: String
-    )
+    ) : Diffable<Item> {
+        override fun areItemsTheSame(other: Item): Boolean {
+            return this.id == other.id
+        }
+
+        override fun areContentsTheSame(other: Item): Boolean {
+            return this == other
+        }
+    }
 
 }

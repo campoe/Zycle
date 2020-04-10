@@ -3,8 +3,8 @@ package com.campoe.android.zycle.app.binder
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import com.campoe.android.zycle.R
-import com.campoe.android.zycle.diff.Diffable
 import com.campoe.android.zycle.binder.Binder
+import com.campoe.android.zycle.diff.Diffable
 import kotlinx.android.synthetic.main.header_section.view.*
 
 class HeaderBinder : Binder<HeaderBinder.Header, RecyclerView.ViewHolder>() {
