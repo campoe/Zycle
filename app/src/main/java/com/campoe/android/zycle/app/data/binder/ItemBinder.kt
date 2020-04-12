@@ -1,4 +1,4 @@
-package com.campoe.android.zycle.app.binder
+package com.campoe.android.zycle.app.data.binder
 
 import android.content.Context
 import androidx.recyclerview.widget.GridLayoutManager

@@ -1,4 +1,4 @@
-package com.campoe.android.zycle.app
+package com.campoe.android.zycle.app.ui.activity
 
 import android.os.Bundle
 import android.view.Menu
@@ -10,8 +10,8 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.campoe.android.zycle.R
 import com.campoe.android.zycle.adapter.util.AdapterPositionLookup
-import com.campoe.android.zycle.app.binder.HeaderBinder
-import com.campoe.android.zycle.app.binder.ItemBinder
+import com.campoe.android.zycle.app.data.binder.HeaderBinder
+import com.campoe.android.zycle.app.data.binder.ItemBinder
 import com.campoe.android.zycle.condition.Condition
 import com.campoe.android.zycle.eventhook.drag.DragCallback
 import com.campoe.android.zycle.eventhook.drag.OnDragListener

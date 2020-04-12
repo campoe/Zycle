@@ -28,10 +28,6 @@ internal interface IMapper<E : Any> {
             block: BinderBuilderBlock<T>? = null
         ): Mapper.Builder<E>
 
-        override fun build(): Mapper<E> {
-            TODO("Not yet implemented")
-        }
-
     }
 
 }

@@ -107,8 +107,9 @@ class CompositeAdapter(vararg adapters: Adapter) : Adapter() {
     }
 
     override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
-        // TODO: goes wrong with multiple nested composite adapters ; should be position with regard to these adapters
-//         lookupEntry(holder.adapterPosition).adapter.onViewRecycled(holder)
+        val position = holder.layoutPosition
+        if (position == RecyclerView.NO_POSITION) return
+        lookupEntry(position).adapter.onViewRecycled(holder)
     }
 
     override fun getLayoutRes(viewType: Int): Int {
@@ -116,11 +117,23 @@ class CompositeAdapter(vararg adapters: Adapter) : Adapter() {
         return adapter.getLayoutRes(viewType)
     }
 
-    override fun onFailedToRecycleView(holder: RecyclerView.ViewHolder): Boolean = false // TODO
+    override fun onFailedToRecycleView(holder: RecyclerView.ViewHolder): Boolean {
+        val position = holder.layoutPosition
+        if (position == RecyclerView.NO_POSITION) return false
+        return lookupEntry(position).adapter.onFailedToRecycleView(holder)
+    }
 
-    override fun onViewAttachedToWindow(holder: RecyclerView.ViewHolder) = Unit // TODO
+    override fun onViewAttachedToWindow(holder: RecyclerView.ViewHolder) {
+        val position = holder.layoutPosition
+        if (position == RecyclerView.NO_POSITION) return
+        lookupEntry(position).adapter.onViewAttachedToWindow(holder)
+    }
 
-    override fun onViewDetachedFromWindow(holder: RecyclerView.ViewHolder) = Unit // TODO
+    override fun onViewDetachedFromWindow(holder: RecyclerView.ViewHolder) {
+        val position = holder.layoutPosition
+        if (position == RecyclerView.NO_POSITION) return
+        lookupEntry(position).adapter.onViewDetachedFromWindow(holder)
+    }
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)

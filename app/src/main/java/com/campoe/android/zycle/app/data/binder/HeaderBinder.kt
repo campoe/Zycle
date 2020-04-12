@@ -1,4 +1,4 @@
-package com.campoe.android.zycle.app.binder
+package com.campoe.android.zycle.app.data.binder
 
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
@@ -17,8 +17,7 @@ class HeaderBinder : Binder<HeaderBinder.Header, RecyclerView.ViewHolder>() {
     override fun onBind(holder: RecyclerView.ViewHolder, item: Header) {
         val itemView = holder.itemView
         itemView.section_title.text = item.title
-        itemView.section_switch.visibility = View.GONE // TODO: expand on checked
-        itemView.section_switch.setOnCheckedChangeListener { buttonView, isChecked -> }
+        itemView.section_switch.visibility = View.GONE
     }
 
     override fun onRecycle(holder: RecyclerView.ViewHolder) {

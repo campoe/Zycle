@@ -11,14 +11,14 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name=".app.MainKotlinActivity">
+        <activity android:name=".app.ui.activity.MainKotlinActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <activity android:name=".app.MainJavaActivity" />
+        <activity android:name=".app.ui.activity.MainJavaActivity" />
 
     </application>
 </manifest>
