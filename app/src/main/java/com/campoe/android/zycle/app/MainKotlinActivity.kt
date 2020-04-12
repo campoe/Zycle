@@ -6,23 +6,25 @@ import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.campoe.android.zycle.R
 import com.campoe.android.zycle.adapter.util.AdapterPositionLookup
 import com.campoe.android.zycle.app.binder.HeaderBinder
 import com.campoe.android.zycle.app.binder.ItemBinder
-import com.campoe.android.zycle.app.stickyheader.StickyHeaderListener
 import com.campoe.android.zycle.condition.Condition
+import com.campoe.android.zycle.eventhook.drag.DragCallback
+import com.campoe.android.zycle.eventhook.drag.OnDragListener
+import com.campoe.android.zycle.eventhook.swipe.SwipeCallback
 import com.campoe.android.zycle.ktx.observableListOf
 import com.campoe.android.zycle.ktx.onClick
+import com.campoe.android.zycle.ktx.plusAssign
 import com.campoe.android.zycle.observablelist.ObservableList
 import com.campoe.android.zycle.zycle
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_sample.*
-import kotlinx.android.synthetic.main.header_section.view.*
 
-class MainKotlinActivity : AppCompatActivity(),
-    StickyHeaderListener {
+class MainKotlinActivity : AppCompatActivity() {
 
     private val list: ObservableList<Any> = observableListOf()
 
@@ -43,7 +45,7 @@ class MainKotlinActivity : AppCompatActivity(),
         object : GridLayoutManager.SpanSizeLookup() {
             override fun getSpanSize(position: Int): Int {
                 val innerPosition = adapterPositionLookup.innerPosition(position)
-                return if (list[innerPosition] is ItemBinder.Item) {
+                return if (innerPosition in list.indices && list[innerPosition] is ItemBinder.Item) {
                     1
                 } else {
                     GridSpanCount
@@ -56,6 +58,29 @@ class MainKotlinActivity : AppCompatActivity(),
         setContentView(R.layout.activity_sample)
 
         setSupportActionBar(toolbar)
+
+        val dragCallback = DragCallback(
+            object : OnDragListener {
+                override fun onDragged(fromPosition: Int, toPosition: Int) {
+                    val fromIndex = adapterPositionLookup.innerPosition(fromPosition)
+                    val toIndex = adapterPositionLookup.innerPosition(toPosition)
+                    if (fromIndex in list.indices && toIndex in list.indices) {
+                        list.move(fromIndex, toIndex)
+                    }
+                }
+            }
+        )
+        val swipeCallback = SwipeCallback.Builder()
+            .left {
+                background(this@MainKotlinActivity, android.R.color.holo_red_dark)
+                text(this@MainKotlinActivity, "Delete", spSize = 20f)
+                onSwiped {
+                    val index = adapterPositionLookup.innerPosition(it)
+                    if (index in list.indices) {
+                        list.removeAt(index)
+                    }
+                }
+            }.build()
 
         recyclerView.zycle {
             layoutManager(LinearLayoutManager(this@MainKotlinActivity))
@@ -82,12 +107,14 @@ class MainKotlinActivity : AppCompatActivity(),
             }
         }
 
+        recyclerView += ItemTouchHelper(dragCallback)
+        recyclerView += ItemTouchHelper(swipeCallback)
+
         var section = 1
-        val range = 0 until ItemCount step SectionItemCount
-        for (i in range) {
+        for (i in 0 until Sections) {
             list.add(newHeader(section))
             for (j in 0 until SectionItemCount) {
-                list.add(newItem(i + j))
+                list.add(newItem((section - 1) * SectionItemCount + j))
             }
             ++section
         }
@@ -107,29 +134,6 @@ class MainKotlinActivity : AppCompatActivity(),
             "https://picsum.photos/id/${ImageOffset + i}/320/200"
         )
 
-    override fun getHeaderPositionForItem(itemPosition: Int): Int {
-        var headerPosition = 0
-        var i = itemPosition
-        while (i >= 0) {
-            if (isHeader(i)) {
-                headerPosition = i
-                break
-            }
-            --i
-        }
-        return headerPosition
-    }
-
-    override fun getHeaderLayoutRes(headerPosition: Int): Int =
-        R.layout.header_section // TODO: should get from HeaderItem
-
-    override fun bindHeaderData(view: View, headerPosition: Int) {
-        val header = list[headerPosition] as? HeaderBinder.Header ?: return
-        view.section_title.text = header.title
-        view.section_switch.visibility = View.GONE
-    }
-
-    override fun isHeader(itemPosition: Int): Boolean = list[itemPosition] is HeaderBinder.Header
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
         menuItemHide = menu.findItem(R.id.hide_list)

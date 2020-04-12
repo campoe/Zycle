@@ -5,6 +5,8 @@ import androidx.annotation.CallSuper
 import androidx.recyclerview.widget.RecyclerView
 import com.campoe.android.zycle.binder.RecyclerBinder
 import com.campoe.android.zycle.eventhook.Hookable
+import com.campoe.android.zycle.eventhook.drag.Draggable
+import com.campoe.android.zycle.eventhook.swipe.Swipeable
 import com.campoe.android.zycle.ktx.attachEvents
 import com.campoe.android.zycle.ktx.cast
 import com.campoe.android.zycle.ktx.inflate
@@ -73,11 +75,6 @@ private class MultiItemAdapter<E : Any>(
         return viewType
     }
 
-    override fun isEnabled(position: Int): Boolean {
-        val item = items[position]
-        return mapper.getBinder(item.javaClass).isEnabled(item, position)
-    }
-
     override fun getItemId(position: Int): Long {
         val item = items[position]
         return mapper.getBinder(item.javaClass).getItemId(item, position)
@@ -85,7 +82,10 @@ private class MultiItemAdapter<E : Any>(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val binder = viewTypes[viewType]?.get() ?: throw RuntimeException()
-        return ViewHolder(binder.inflate(layoutInflater!!, parent))
+        return object : ViewHolder(binder.inflate(layoutInflater!!, parent)) {
+            override fun isDraggable(): Boolean = binder.cast<Draggable>()?.isDraggable ?: false
+            override fun isSwipeable(): Boolean = binder.cast<Swipeable>()?.isSwipeable ?: false
+        }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
@@ -114,12 +114,13 @@ private class SingleItemAdapter<E : Any>(
 
     override fun getItemViewType(position: Int): Int = binder.viewType
 
-    override fun isEnabled(position: Int): Boolean = binder.isEnabled(item, position)
-
     override fun getItemId(position: Int): Long = binder.getItemId(item, position)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        return ViewHolder(binder.inflate(layoutInflater!!, parent))
+        return object : ViewHolder(binder.inflate(layoutInflater!!, parent)) {
+            override fun isDraggable(): Boolean = binder.cast<Draggable>()?.isDraggable ?: false
+            override fun isSwipeable(): Boolean = binder.cast<Swipeable>()?.isSwipeable ?: false
+        }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {

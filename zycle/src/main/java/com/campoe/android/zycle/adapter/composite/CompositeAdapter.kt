@@ -63,11 +63,6 @@ class CompositeAdapter(vararg adapters: Adapter) : Adapter() {
         return entry.adapter.getItemId(entry.childPosition(position))
     }
 
-    override fun isEnabled(position: Int): Boolean {
-        val entry = lookupEntry(position)
-        return entry.adapter.isEnabled(entry.childPosition(position))
-    }
-
     override fun getItemCount(): Int {
         return if (hasObservers()) {
             compositeItemCount
@@ -151,7 +146,7 @@ class CompositeAdapter(vararg adapters: Adapter) : Adapter() {
                     notifyItemRangeInserted(
                         positionStart + offset,
                         itemCount
-                    ) // TODO: incorrect range
+                    )
                 }
 
                 override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) {

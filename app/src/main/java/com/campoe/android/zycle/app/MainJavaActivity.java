@@ -1,5 +1,6 @@
 package com.campoe.android.zycle.app;
 
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -10,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -19,6 +21,9 @@ import com.campoe.android.zycle.adapter.util.AdapterPositionLookup;
 import com.campoe.android.zycle.app.binder.HeaderBinder;
 import com.campoe.android.zycle.app.binder.ItemBinder;
 import com.campoe.android.zycle.condition.Condition;
+import com.campoe.android.zycle.eventhook.drag.DragCallback;
+import com.campoe.android.zycle.eventhook.drag.OnDragListener;
+import com.campoe.android.zycle.eventhook.swipe.SwipeCallback;
 import com.campoe.android.zycle.ktx.HookableKt;
 import com.campoe.android.zycle.mapper.Mapper;
 import com.campoe.android.zycle.observablelist.ObservableList;
@@ -57,7 +62,7 @@ public class MainJavaActivity extends AppCompatActivity {
                 @Override
                 public int getSpanSize(int position) {
                     int innerPosition = adapterPositionLookup.innerPosition(position);
-                    if (list.get(innerPosition) instanceof ItemBinder.Item) {
+                    if (innerPosition >= 0 && innerPosition < list.size() && list.get(innerPosition) instanceof ItemBinder.Item) {
                         return 1;
                     } else {
                         return GridSpanCount;
@@ -72,6 +77,35 @@ public class MainJavaActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        DragCallback dragCallback = new DragCallback(
+                new OnDragListener() {
+                    @Override
+                    public void onDropped(int fromPosition, int toPosition) {
+                    }
+
+                    @Override
+                    public void onDragged(int fromPosition, int toPosition) {
+                        int fromIndex = adapterPositionLookup.innerPosition(fromPosition);
+                        int toIndex = adapterPositionLookup.innerPosition(toPosition);
+                        if (fromIndex < 0 || fromIndex >= list.size() || toIndex < 0 || toIndex >= list.size())
+                            return;
+                        list.move(fromIndex, toIndex);
+                    }
+                }, ItemTouchHelper.UP | ItemTouchHelper.DOWN | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT
+        );
+        SwipeCallback swipeCallback = new SwipeCallback.Builder()
+                .left(action -> {
+                    action.background(this, android.R.color.holo_red_dark);
+                    action.text(this, "Delete", android.R.color.white, 20f, Typeface.DEFAULT);
+                    action.onSwiped(adapterPosition -> {
+                        int index = adapterPositionLookup.innerPosition(adapterPosition);
+                        if (index < 0 || index >= list.size()) return Unit.INSTANCE;
+                        list.removeAt(index);
+                        return Unit.INSTANCE;
+                    });
+                    return Unit.INSTANCE;
+                }).build();
 
         HookableKt.onClick(itemBinder, (holder, item, position) -> {
             Snackbar.make(holder.itemView, item.getDescription(), Snackbar.LENGTH_SHORT).show();
@@ -92,6 +126,9 @@ public class MainJavaActivity extends AppCompatActivity {
                 .build();
         adapterPositionLookup = new AdapterPositionLookup(adapter);
         adapter.attach(recyclerView);
+
+        new ItemTouchHelper(dragCallback).attachToRecyclerView(recyclerView);
+        new ItemTouchHelper(swipeCallback).attachToRecyclerView(recyclerView);
 
         int section = 1;
         for (int i = 0; i < ItemCount; i += SectionItemCount) {
@@ -147,19 +184,18 @@ public class MainJavaActivity extends AppCompatActivity {
             case R.id.switch_grid: {
                 item.setVisible(false);
                 menuItemList.setVisible(true);
-                recyclerView.setLayoutManager(
-                        itemBinder.switchLayout(1, recyclerView.getContext()));
+                RecyclerView.LayoutManager layoutManager =
+                        itemBinder.switchLayout(GridSpanCount, recyclerView.getContext());
+                recyclerView.setLayoutManager(layoutManager);
+                if (layoutManager instanceof GridLayoutManager) {
+                    ((GridLayoutManager) layoutManager).setSpanSizeLookup(spanSizeLookup);
+                }
                 return true;
             }
             case R.id.switch_list: {
                 item.setVisible(false);
                 menuItemGrid.setVisible(true);
-                RecyclerView.LayoutManager layoutManager =
-                        itemBinder.switchLayout(GridSpanCount, recyclerView.getContext());
-                if (layoutManager instanceof GridLayoutManager) {
-                    ((GridLayoutManager) layoutManager).setSpanSizeLookup(spanSizeLookup);
-                }
-                recyclerView.setLayoutManager(layoutManager);
+                recyclerView.setLayoutManager(itemBinder.switchLayout(1, recyclerView.getContext()));
             }
         }
         return super.onOptionsItemSelected(item);

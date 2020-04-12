@@ -2,36 +2,40 @@ package com.campoe.android.zycle.eventhook.drag
 
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import com.campoe.android.zycle.ktx.cast
+import com.campoe.android.zycle.viewholder.ViewHolder
 
 class DragCallback(
-    private val dragListener: DragListener,
+    private val listener: OnDragListener,
     private val dragDirs: Int = ItemTouchHelper.UP or ItemTouchHelper.DOWN or ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
 ) :
     ItemTouchHelper.Callback() {
 
+    var isEnabled: Boolean = true
+
     private var fromPosition: Int = RecyclerView.NO_POSITION
     private var toPosition: Int = RecyclerView.NO_POSITION
 
-    override fun isLongPressDragEnabled(): Boolean {
-        return true
-    }
+    override fun isLongPressDragEnabled(): Boolean = isEnabled
 
-    override fun isItemViewSwipeEnabled(): Boolean {
-        return false
-    }
+    override fun isItemViewSwipeEnabled(): Boolean = false
 
     override fun canDropOver(
         recyclerView: RecyclerView,
         current: RecyclerView.ViewHolder,
         target: RecyclerView.ViewHolder
     ): Boolean {
-        return current.adapterPosition != target.adapterPosition
+        return current.itemViewType == target.itemViewType
     }
 
     override fun getMovementFlags(
         recyclerView: RecyclerView,
         viewHolder: RecyclerView.ViewHolder
     ): Int {
+        val holder = viewHolder.cast<ViewHolder>()
+        val dragDirs = if (holder?.isDraggable() == true) {
+            this.dragDirs
+        } else 0
         return makeMovementFlags(dragDirs, 0)
     }
 
@@ -40,13 +44,13 @@ class DragCallback(
         viewHolder: RecyclerView.ViewHolder,
         target: RecyclerView.ViewHolder
     ): Boolean {
+        val holder = viewHolder.cast<ViewHolder>()
+        if (holder?.isDraggable() != true) return false
         if (fromPosition == RecyclerView.NO_POSITION) {
             fromPosition = viewHolder.adapterPosition
         }
         toPosition = target.adapterPosition
-        val fromPosition = fromPosition
-        val toPosition = toPosition
-        dragListener.onDragged(fromPosition, toPosition)
+        listener.onDragged(viewHolder.adapterPosition, toPosition)
         return true
     }
 
@@ -54,10 +58,8 @@ class DragCallback(
 
     override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
         super.clearView(recyclerView, viewHolder)
-        val fromPosition = fromPosition
-        val toPosition = toPosition
         if (fromPosition != RecyclerView.NO_POSITION && toPosition != RecyclerView.NO_POSITION && fromPosition != toPosition) {
-            dragListener.onDropped(fromPosition, toPosition)
+            listener.onDropped(fromPosition, toPosition)
         }
         this.toPosition = RecyclerView.NO_POSITION
         this.fromPosition = this.toPosition

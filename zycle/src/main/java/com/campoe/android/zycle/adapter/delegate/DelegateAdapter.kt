@@ -35,7 +35,6 @@ open class DelegateAdapter(private val delegateAdapter: Adapter) : Adapter() {
     override fun getItemCount(): Int = delegateAdapter.getItemCount()
     override fun getItemViewType(position: Int): Int = delegateAdapter.getItemViewType(position)
     override fun getItemId(position: Int): Long = delegateAdapter.getItemId(position)
-    override fun isEnabled(position: Int): Boolean = delegateAdapter.isEnabled(position)
     override fun onFirstObserverRegistered() {
         delegateAdapter.registerAdapterDataObserver(observer)
     }

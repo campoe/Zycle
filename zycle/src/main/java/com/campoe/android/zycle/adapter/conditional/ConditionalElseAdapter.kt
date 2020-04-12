@@ -32,11 +32,6 @@ internal class ConditionalElseAdapter(
         else RecyclerView.NO_ID
     }
 
-    override fun isEnabled(position: Int): Boolean {
-        return if (isVisible) super.isEnabled(position)
-        else position == 0
-    }
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return if (isVisible) super.onCreateViewHolder(parent, viewType)
         else ViewHolder(parent.inflate(layoutInflater!!, viewType))

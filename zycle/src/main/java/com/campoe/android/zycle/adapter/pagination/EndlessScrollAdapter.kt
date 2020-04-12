@@ -42,14 +42,10 @@ internal class EndlessScrollAdapter(
                 override fun onLoadingStateChanged(isLoading: Boolean) {
                     if (isLoading) {
                         itemCount = 1
-                        recyclerView.adapter?.run {
-                            notifyItemInserted(itemCount - 1)
-                        }
+                        notifyItemInserted(0)
                     } else {
                         itemCount = 0
-                        recyclerView.adapter?.run {
-                            notifyItemRemoved(itemCount - 1)
-                        }
+                        notifyItemRemoved(0)
                     }
                 }
             })

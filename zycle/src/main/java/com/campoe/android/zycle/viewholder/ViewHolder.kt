@@ -3,8 +3,11 @@ package com.campoe.android.zycle.viewholder
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 
-class ViewHolder(
+open class ViewHolder(
     itemView: View
-) :
-    RecyclerView.ViewHolder(itemView),
-    IViewHolder
+) : IViewHolder, RecyclerView.ViewHolder(itemView) {
+
+    override fun isDraggable(): Boolean = false
+    override fun isSwipeable(): Boolean = false
+
+}

@@ -26,7 +26,6 @@ internal interface IAdapter {
     fun getItemCount(): Int
     fun getItemId(position: Int): Long
     fun getItemViewType(position: Int): Int
-    fun isEnabled(position: Int): Boolean
 
     fun registerAdapterDataObserver(observer: AdapterDataObserver)
     fun unregisterAdapterDataObserver(observer: AdapterDataObserver)
@@ -50,6 +49,7 @@ internal interface IAdapter {
     fun notifyItemRangeInserted(positionStart: Int, itemCount: Int)
     fun notifyItemRemoved(position: Int)
     fun notifyItemRangeRemoved(positionStart: Int, itemCount: Int)
+    fun notifyItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int)
 
     fun compose(transformer: Transformer): Adapter
     fun flatten(): Adapter

@@ -39,7 +39,6 @@ abstract class Adapter : IAdapter {
     final override fun attach(recyclerView: RecyclerView) =
         apply { recyclerView.adapter = RecyclerAdapter(this) }
 
-    override fun isEnabled(position: Int): Boolean = true
     override fun flatten(): Adapter = this
 
     override fun compose(transformer: Transformer): Adapter =
@@ -106,6 +105,13 @@ abstract class Adapter : IAdapter {
     final override fun notifyItemRangeRemoved(positionStart: Int, itemCount: Int) =
         observable.notifyItemRangeRemoved(positionStart, itemCount)
 
+    final override fun notifyItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int) {
+        for (i in itemCount - 1 downTo 0) notifyItemMoved(
+            fromPosition + i,
+            toPosition + i
+        )
+    }
+
     @CallSuper
     override fun registerAdapterDataObserver(observer: AdapterDataObserver) {
         val hasObservers = hasObservers()
@@ -121,13 +127,6 @@ abstract class Adapter : IAdapter {
         if (!hasObservers()) {
             onLastObserverUnregistered()
         }
-    }
-
-    fun notifyItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int) {
-        for (i in itemCount - 1 downTo 0) notifyItemMoved(
-            fromPosition + i,
-            toPosition + i
-        )
     }
 
     final override fun prepend(adapter: Adapter): Adapter =

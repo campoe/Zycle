@@ -10,10 +10,12 @@ import com.campoe.android.zycle.binder.Binder
 import com.campoe.android.zycle.diff.Diffable
 import com.campoe.android.zycle.eventhook.EventHook
 import com.campoe.android.zycle.eventhook.Hookable
+import com.campoe.android.zycle.eventhook.drag.Draggable
+import com.campoe.android.zycle.eventhook.swipe.Swipeable
 import kotlinx.android.synthetic.main.item_image.view.*
 
 class ItemBinder : Binder<ItemBinder.Item, RecyclerView.ViewHolder>(),
-    Hookable<ItemBinder.Item, RecyclerView.ViewHolder> {
+    Hookable<ItemBinder.Item, RecyclerView.ViewHolder>, Draggable, Swipeable {
 
     override val eventHooks: MutableCollection<EventHook<Item, RecyclerView.ViewHolder>> =
         mutableListOf()

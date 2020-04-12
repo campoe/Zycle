@@ -1,5 +1,6 @@
 package com.campoe.android.zycle.ktx
 
+import android.view.View
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 
@@ -17,3 +18,11 @@ operator fun RecyclerView.minusAssign(decor: RecyclerView.ItemDecoration) =
 
 operator fun RecyclerView.plusAssign(itemTouchHelper: ItemTouchHelper) =
     itemTouchHelper.attachToRecyclerView(this)
+
+operator fun RecyclerView.plusAssign(itemAnimator: RecyclerView.ItemAnimator) {
+    this.itemAnimator = itemAnimator
+}
+
+operator fun RecyclerView.plusAssign(view: View) {
+    addView(view)
+}

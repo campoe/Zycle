@@ -13,8 +13,6 @@ object EmptyAdapter : Adapter() {
 
     override fun getItemId(position: Int): Long = throw UnsupportedOperationException()
 
-    override fun isEnabled(position: Int): Boolean = throw UnsupportedOperationException()
-
     override fun getItemViewType(position: Int): Int = throw UnsupportedOperationException()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder =

@@ -23,7 +23,6 @@ abstract class Binder<E : Any, VH : RecyclerView.ViewHolder> : IBinder<E, VH> {
 
     override fun hasStableIds(): Boolean = false
     override fun getItemId(item: E, position: Int): Long = RecyclerView.NO_ID
-    override fun isEnabled(item: E, position: Int): Boolean = true
 
     override fun onCreate(holder: VH) = Unit
     override fun onBind(holder: VH, item: E) = Unit
