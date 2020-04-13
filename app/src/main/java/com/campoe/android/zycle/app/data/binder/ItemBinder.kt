@@ -17,6 +17,9 @@ import kotlinx.android.synthetic.main.item_image.view.*
 class ItemBinder : Binder<ItemBinder.Item, RecyclerView.ViewHolder>(),
     Hookable<ItemBinder.Item, RecyclerView.ViewHolder>, Draggable, Swipeable {
 
+    override val isSwipeable: Boolean
+        get() = layoutList
+
     override val eventHooks: MutableCollection<EventHook<Item, RecyclerView.ViewHolder>> =
         mutableListOf()
 
