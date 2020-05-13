@@ -41,7 +41,7 @@ fun <E : Any, VH : RecyclerView.ViewHolder> Hookable<E, VH>.onDrag(f: VH.(item: 
                     position: Int,
                     e: android.view.DragEvent
                 ): Boolean {
-                    return onDrag(holder, item, position, e)
+                    return f(holder, item, position, e)
                 }
             }
         )

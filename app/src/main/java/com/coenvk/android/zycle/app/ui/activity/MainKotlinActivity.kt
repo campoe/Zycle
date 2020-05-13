@@ -84,7 +84,7 @@ class MainKotlinActivity : AppCompatActivity() {
 
         recyclerView.zycle {
             layoutManager(LinearLayoutManager(this@MainKotlinActivity))
-            adapter {
+            adapterOf {
                 viewsOf(R.layout.header_top)
                 adapterOf {
                     adapterOf(list) {

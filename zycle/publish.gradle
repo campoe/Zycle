@@ -3,12 +3,13 @@ apply plugin: 'com.jfrog.bintray'
 
 group 'com.coenvk.android.zycle'
 version '1.0.0'
+description "A Kotlin DSL for Android RecyclerViews."
 
 project.ext {
     mavGitUrl = 'https://github.com/coenvk/zycle.git'
     mavProjectName = 'zycle'
     mavLibraryLicenses = ["Apache-2.0": 'http://www.apache.org/licenses/LICENSE-2.0.txt']
-    mavLibraryDescription = "A Kotlin DSL for Android RecyclerViews."
+    mavLibraryDescription = this.description
     mavPublishToMavenLocal = true
     mavSiteUrl = 'https://github.com/coenvk/zycle'
 }
@@ -25,7 +26,7 @@ bintray {
     pkg {
         repo = 'maven'
         name = 'zycle'
-        description = "A Kotlin DSL for Android RecyclerViews."
+        description = this.description
         publicDownloadNumbers = true
         licenses = ['Apache-2.0']
         vcsUrl = 'https://github.com/coenvk/zycle'

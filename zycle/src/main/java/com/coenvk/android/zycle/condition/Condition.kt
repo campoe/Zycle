@@ -15,7 +15,11 @@ class Condition(private var value: Boolean = true) : ICondition, Observable<Obse
 
     override fun eval(): Boolean = value
 
-    private fun notifyChanged() = mObservers.reversed().forEach { it.onChanged() }
+    private fun notifyChanged() {
+        for (i in mObservers.indices.reversed()) {
+            mObservers[i].onChanged()
+        }
+    }
 
     operator fun getValue(thisRef: Any?, property: KProperty<*>): Boolean = eval()
 

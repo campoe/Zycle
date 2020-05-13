@@ -1,6 +1,8 @@
 package com.coenvk.android.zycle.observablelist
 
+import android.os.Build
 import android.os.Looper
+import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.DiffUtil
 import com.coenvk.android.zycle.adapter.Adapter
 import com.coenvk.android.zycle.diff.DiffUtilCallback
@@ -8,6 +10,8 @@ import com.coenvk.android.zycle.ktx.dispatchUpdatesTo
 import java.lang.ref.Reference
 import java.lang.ref.WeakReference
 import java.util.*
+import java.util.function.Predicate
+import java.util.function.UnaryOperator
 
 class ObservableList<E : Any>(private val items: MutableList<E> = mutableListOf()) :
     IObservableList<E>,
@@ -105,6 +109,34 @@ class ObservableList<E : Any>(private val items: MutableList<E> = mutableListOf(
         return ret
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
+    override fun removeIf(filter: Predicate<in E>): Boolean {
+        var removed = false
+        val each: MutableListIterator<E> = listIterator()
+        while (each.hasNext()) {
+            val i = each.nextIndex()
+            if (filter.test(each.next())) {
+                each.remove()
+                removed = true
+                callbacks.forEach { it.onItemRangeRemoved(this, i, 1) }
+            }
+        }
+        return removed
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    override fun replaceAll(operator: UnaryOperator<E>) {
+        val li = listIterator()
+        while (li.hasNext()) {
+            li.set(operator.apply(li.next()))
+        }
+        callbacks.forEach { it.onChanged(this) }
+    }
+
+    override fun subList(fromIndex: Int, toIndex: Int): MutableList<E> {
+        return ObservableList(items.subList(fromIndex, toIndex))
+    }
+
     override fun clear() {
         items.clear()
         callbacks.forEach { it.onChanged(this) }
@@ -171,7 +203,6 @@ class ObservableList<E : Any>(private val items: MutableList<E> = mutableListOf(
             positionStart: Int,
             itemCount: Int
         ) {
-            IntArray(3).toList()
             adapter?.notifyItemRangeChanged(positionStart, itemCount)
         }
 

@@ -26,7 +26,7 @@ project.ext {
     releaseUserOrg = "campoe"
     releaseGroupId = "com.campoe.android.zycle"
     releaseVersion = "1.0.0"
-    releaseWebsite = "https://github.com/campoe/Zycle"
+    releaseWebsite = "https://github.com/campoe/zycle"
     versionCode = 1
     versionName = "1.0"
 

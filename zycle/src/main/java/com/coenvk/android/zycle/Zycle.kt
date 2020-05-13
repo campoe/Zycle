@@ -18,7 +18,7 @@ import com.coenvk.android.zycle.mapper.Mapper
 annotation class ZycleDsl
 
 @ZycleDsl
-class Zycle(
+class Zycle internal constructor(
     private val recyclerView: RecyclerView
 ) {
 
